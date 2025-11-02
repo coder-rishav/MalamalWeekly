@@ -18,10 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('admin-panel/', include('custom_admin.urls')),  # Custom admin panel
+    path('login/', RedirectView.as_view(url='/accounts/login/', permanent=False)),  # Redirect /login/ to /accounts/login/
     path('', include('games.urls')),
     path('accounts/', include('accounts.urls')),
     path('transactions/', include('transactions.urls')),
