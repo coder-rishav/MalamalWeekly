@@ -21,8 +21,7 @@
                         <th>Status</th>
                         <th>Participants</th>
                         <th>Pool Amount</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
+                        <th>Entry Deadline</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -35,18 +34,32 @@
                                 {{ round.get_status_display }}
                             </span>
                         </td>
-                        <td>{{ round.total_participants }}/{{ game.max_participants }}</td>
-                        <td><strong class="text-success">₹{{ round.total_pool_amount }}</strong></td>
-                        <td><small>{{ round.scheduled_start|date:"M d, Y H:i" }}</small></td>
-                        <td><small>{{ round.scheduled_end|date:"M d, Y H:i" }}</small></td>
                         <td>
-                            {% if round.status == 'closed' %}
+                            <strong>{{ round.total_participants }}</strong>/{{ game.max_participants }}
+                            <br><small class="text-muted">players</small>
+                        </td>
+                        <td><strong class="text-success">₹{{ round.total_pool_amount }}</strong></td>
+                        <td>
+                            <strong>{{ round.scheduled_end|date:"M d, Y" }}</strong>
+                            <br><small class="text-muted">{{ round.scheduled_end|date:"h:i A" }}</small>
+                            {% if round.status == 'open' %}
+                            <br><small class="badge bg-info text-dark">{{ round.scheduled_end|timeuntil }} left</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if round.status == 'open' %}
+                            <a href="{% url 'custom_admin:close_round' round.id %}" 
+                               class="btn btn-sm btn-danger"
+                               onclick="return confirm('Close this round now? No more entries will be accepted.')">
+                                <i class="bi bi-x-circle"></i> Close Entry
+                            </a>
+                            {% elif round.status == 'closed' %}
                             <a href="{% url 'custom_admin:select_winner' round.id %}" 
                                class="btn btn-sm btn-warning">
                                 <i class="bi bi-trophy"></i> Select Winner
                             </a>
                             {% elif round.status == 'completed' %}
-                            <span class="badge bg-success">Winner Selected</span>
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Completed</span>
                             {% endif %}
                         </td>
                     </tr>

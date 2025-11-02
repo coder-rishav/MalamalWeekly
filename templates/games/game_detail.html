@@ -71,7 +71,13 @@
             <div class="card-body">
                 <h6>Round #{{ active_round.round_number }}</h6>
                 <p><strong>Status:</strong> <span class="badge bg-{{ active_round.status }}">{{ active_round.get_status_display }}</span></p>
-                <p><strong>Ends:</strong> {{ active_round.scheduled_end|date:"M d, Y H:i" }}</p>
+                
+                <div class="alert alert-warning mb-3">
+                    <i class="bi bi-clock-history"></i> <strong>Entry Deadline:</strong><br>
+                    {{ active_round.scheduled_end|date:"M d, Y" }} at {{ active_round.scheduled_end|date:"h:i A" }}<br>
+                    <small class="badge bg-danger mt-1">{{ active_round.scheduled_end|timeuntil }} remaining</small>
+                </div>
+                
                 <p><strong>Participants:</strong> {{ active_round.total_participants }}/{{ game.max_participants }}</p>
                 <p><strong>Prize Pool:</strong> ₹{{ active_round.total_pool_amount }}</p>
                 

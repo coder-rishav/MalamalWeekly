@@ -351,6 +351,25 @@ def game_rounds(request, game_id):
 
 @login_required
 @user_passes_test(is_admin, login_url='/admin-panel/login/')
+def close_round(request, round_id):
+    """Close a round for entries"""
+    game_round = get_object_or_404(GameRound, id=round_id)
+    
+    if game_round.status != 'open':
+        messages.error(request, 'Only open rounds can be closed.')
+        return redirect('custom_admin:game_rounds', game_id=game_round.game.id)
+    
+    # Close the round
+    game_round.status = 'closed'
+    game_round.actual_end = timezone.now()
+    game_round.save()
+    
+    messages.success(request, f'Round #{game_round.round_number} has been closed. You can now select a winner.')
+    return redirect('custom_admin:game_rounds', game_id=game_round.game.id)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
 def select_winner(request, round_id):
     """Select winner for a round"""
     game_round = get_object_or_404(GameRound, id=round_id)
