@@ -33,20 +33,22 @@ def dashboard(request):
     from accounts.models import UserProfile
     profile, created = UserProfile.objects.get_or_create(user=user)
     
-    # Get active games
-    active_games = Game.objects.filter(status='active')
+    # Get active games only if user has permission
+    active_games = Game.objects.none()  # Empty queryset by default
+    upcoming_rounds = GameRound.objects.none()  # Empty queryset by default
     
-    # Get user's recent entries
+    if profile.can_view_games:
+        active_games = Game.objects.filter(status='active')
+        upcoming_rounds = GameRound.objects.filter(
+            status='open',
+            scheduled_end__gt=timezone.now()
+        ).order_by('scheduled_end')[:5]
+    
+    # Get user's recent entries (always show their own entries)
     recent_entries = UserEntry.objects.filter(user=user).order_by('-created_at')[:5]
     
-    # Get user's winnings
+    # Get user's winnings (always show their own winnings)
     my_winnings = Winner.objects.filter(user=user).order_by('-announced_at')[:5]
-    
-    # Get upcoming rounds
-    upcoming_rounds = GameRound.objects.filter(
-        status='open',
-        scheduled_end__gt=timezone.now()
-    ).order_by('scheduled_end')[:5]
     
     context = {
         'profile': profile,
@@ -61,6 +63,12 @@ def dashboard(request):
 @login_required
 def games_list(request):
     """List all available games"""
+    # Check permission
+    profile = request.user.profile
+    if not profile.can_view_games:
+        messages.error(request, 'You do not have permission to view games.')
+        return redirect('games:dashboard')
+    
     games = Game.objects.filter(status='active').order_by('-is_featured', 'name')
     
     context = {
@@ -72,6 +80,12 @@ def games_list(request):
 @login_required
 def game_detail(request, game_id):
     """Game details and play interface"""
+    # Check permission to view games
+    profile = request.user.profile
+    if not profile.can_view_games:
+        messages.error(request, 'You do not have permission to view games.')
+        return redirect('games:dashboard')
+    
     game = get_object_or_404(Game, id=game_id)
     
     # Get active round for this game
@@ -102,20 +116,29 @@ def game_detail(request, game_id):
 @login_required
 def play_game(request, game_id, round_id):
     """Handle game entry submission"""
+    # Ensure user has a profile (create if missing)
+    from accounts.models import UserProfile
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    # Check if user is blocked
+    if profile.is_blocked:
+        messages.error(request, f'Your account has been banned. Reason: {profile.blocked_reason}')
+        return redirect('games:dashboard')
+    
+    # Check if user has permission to view games
+    if not profile.can_view_games:
+        messages.error(request, 'You do not have permission to view games.')
+        return redirect('games:dashboard')
+    
+    # Check if user has permission to play games
+    if not profile.can_play_games:
+        messages.error(request, 'You do not have permission to play games.')
+        return redirect('games:dashboard')
+    
     game = get_object_or_404(Game, id=game_id)
     game_round = get_object_or_404(GameRound, id=round_id, game=game)
     
     if request.method == 'POST':
-        # Check if user has permission to play games
-        profile = request.user.profile
-        if not profile.can_play_games:
-            messages.error(request, 'You do not have permission to play games. Contact admin for more information.')
-            return redirect('games:game_detail', game_id=game_id)
-        
-        if profile.is_blocked:
-            messages.error(request, f'Your account has been banned. Reason: {profile.blocked_reason}')
-            return redirect('games:dashboard')
-        
         # Check if user can participate
         can_participate, message = game_round.can_participate(request.user)
         
