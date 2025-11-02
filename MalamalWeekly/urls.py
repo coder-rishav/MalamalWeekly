@@ -29,6 +29,11 @@ urlpatterns = [
     path('transactions/', include('transactions.urls')),
 ]
 
+# Custom error handlers
+handler403 = 'MalamalWeekly.views.custom_403'
+handler404 = 'MalamalWeekly.views.custom_404'
+handler500 = 'MalamalWeekly.views.custom_500'
+
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

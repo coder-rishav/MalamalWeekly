@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Custom error handlers
+CSRF_FAILURE_VIEW = 'MalamalWeekly.views.csrf_failure'
+
 
 # Application definition
 
