@@ -23,6 +23,7 @@ class UserPermissionsMiddleware:
             '/accounts/login/',
             '/accounts/logout/',
             '/accounts/register/',
+            '/accounts/banned/',  # Allow access to banned page
             '/admin/',
             '/admin-panel/',
             '/static/',
@@ -40,10 +41,13 @@ class UserPermissionsMiddleware:
             response = self.get_response(request)
             return response
         
-        # Check if user is blocked
+        # Check if user is blocked - redirect to banned page
         if profile.is_blocked:
-            messages.error(request, f'Your account has been banned. Reason: {profile.blocked_reason}')
-            return redirect('games:home')
+            # Prevent redirect loop - if already on banned page, let it through
+            if request.path == reverse('accounts:account_banned'):
+                response = self.get_response(request)
+                return response
+            return redirect('accounts:account_banned')
         
         # Define path-to-permission mapping
         permission_checks = {

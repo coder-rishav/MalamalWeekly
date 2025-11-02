@@ -12,6 +12,13 @@ import json
 def home(request):
     """Landing page"""
     if request.user.is_authenticated:
+        # Check if user is banned
+        try:
+            profile = request.user.profile
+            if profile.is_blocked:
+                return redirect('accounts:account_banned')
+        except:
+            pass
         return redirect('games:dashboard')
     
     featured_games = Game.objects.filter(status='active', is_featured=True)[:3]
@@ -32,6 +39,10 @@ def dashboard(request):
     # Ensure user has a profile (create if missing)
     from accounts.models import UserProfile
     profile, created = UserProfile.objects.get_or_create(user=user)
+    
+    # Check if user is banned
+    if profile.is_blocked:
+        return redirect('accounts:account_banned')
     
     # Get active games only if user has permission
     active_games = Game.objects.none()  # Empty queryset by default

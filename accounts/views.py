@@ -69,6 +69,17 @@ def user_logout(request):
 
 
 @login_required
+def account_banned(request):
+    """Show banned account page"""
+    profile = request.user.profile
+    
+    context = {
+        'reason': profile.blocked_reason if profile.is_blocked else 'Account suspended',
+    }
+    return render(request, 'accounts/account_banned.html', context)
+
+
+@login_required
 def profile(request):
     """User profile view"""
     user = request.user

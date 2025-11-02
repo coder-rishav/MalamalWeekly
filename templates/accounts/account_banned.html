@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Suspended - Malamal Weekly{% endblock %}
+
+{% block content %}
+<style>
+    .banned-container {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .banned-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 50px;
+        max-width: 600px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+    .banned-icon {
+        font-size: 80px;
+        color: #dc3545;
+        animation: shake 0.5s;
+    }
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+</style>
+
+<div class="banned-container">
+    <div class="banned-card text-center">
+        <div class="banned-icon mb-4">
+            <i class="bi bi-ban"></i>
+        </div>
+        
+        <h1 class="text-danger mb-3">Account Suspended</h1>
+        
+        <div class="alert alert-danger">
+            <p class="mb-2"><strong>Your account has been suspended by our administrators.</strong></p>
+            {% if reason %}
+            <hr>
+            <p class="mb-0"><strong>Reason:</strong> {{ reason }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="mt-4">
+            <h5 class="mb-3">What does this mean?</h5>
+            <ul class="text-start">
+                <li>You cannot access games or participate in any activities</li>
+                <li>Deposits and withdrawals are disabled</li>
+                <li>Your account is under review</li>
+            </ul>
+        </div>
+        
+        <div class="mt-4">
+            <h5 class="mb-3">What can you do?</h5>
+            <ul class="text-start">
+                <li>Contact our support team for more information</li>
+                <li>If you believe this is a mistake, submit an appeal</li>
+                <li>Review our terms of service and community guidelines</li>
+            </ul>
+        </div>
+        
+        <div class="mt-4 p-3 bg-light rounded">
+            <h6 class="mb-2"><i class="bi bi-envelope"></i> Need Help?</h6>
+            <p class="mb-2 small">Contact Support: <strong>support@malamalweekly.com</strong></p>
+            <p class="mb-0 small">Phone: <strong>+91-1234567890</strong></p>
+        </div>
+        
+        <div class="mt-4">
+            <a href="{% url 'accounts:logout' %}" class="btn btn-secondary btn-lg">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+        
+        <div class="mt-4">
+            <small class="text-muted">
+                If you have questions about this suspension, please contact our support team.
+            </small>
+        </div>
+    </div>
+</div>
+{% endblock %}
