@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ game.name }} - Malamal Weekly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-controller"></i> {{ game.name }}</h4>
+            </div>
+            <div class="card-body">
+                {% if game.image %}
+                <img src="{{ game.image.url }}" alt="{{ game.name }}" class="img-fluid mb-3 rounded">
+                {% endif %}
+                
+                <p class="lead">{{ game.description }}</p>
+                
+                <hr>
+                
+                <h5><i class="bi bi-book"></i> Game Rules</h5>
+                <div style="white-space: pre-line;">{{ game.rules }}</div>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Entry Fee</h6>
+                                <h4 class="text-primary">₹{{ game.entry_fee }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Prize</h6>
+                                <h4 class="text-success">₹{{ game.winning_amount }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Players</h6>
+                                <h4>{{ game.min_participants }}-{{ game.max_participants }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Rounds</h6>
+                                <h4>{{ game.total_rounds_played }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <!-- Active Round -->
+        {% if active_round %}
+        <div class="card mb-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-play-circle"></i> Active Round</h5>
+            </div>
+            <div class="card-body">
+                <h6>Round #{{ active_round.round_number }}</h6>
+                <p><strong>Status:</strong> <span class="badge bg-{{ active_round.status }}">{{ active_round.get_status_display }}</span></p>
+                <p><strong>Ends:</strong> {{ active_round.scheduled_end|date:"M d, Y H:i" }}</p>
+                <p><strong>Participants:</strong> {{ active_round.total_participants }}/{{ game.max_participants }}</p>
+                <p><strong>Prize Pool:</strong> ₹{{ active_round.total_pool_amount }}</p>
+                
+                {% if user_entry %}
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i> You've entered this round!
+                    <br><small>Entry: {{ user_entry.entry_number }}</small>
+                </div>
+                <a href="{% url 'games:my_entries' %}" class="btn btn-outline-primary w-100">
+                    View My Entry
+                </a>
+                {% else %}
+                <form method="post" action="{% url 'games:play_game' game.id active_round.id %}">
+                    {% csrf_token %}
+                    
+                    {% if game.game_type == 'number_match' %}
+                    <h6 class="mb-3">Select 5 Numbers (0-99)</h6>
+                    {% for i in "12345" %}
+                    <div class="mb-2">
+                        <input type="number" name="number_{{ forloop.counter }}" class="form-control" placeholder="Number {{ forloop.counter }}" min="0" max="99" required>
+                    </div>
+                    {% endfor %}
+                    
+                    {% elif game.game_type == 'lucky_draw' %}
+                    <h6 class="mb-3">Pick Your Lucky Number (1-100)</h6>
+                    <input type="number" name="number" class="form-control" placeholder="Your lucky number" min="1" max="100" required>
+                    
+                    {% elif game.game_type == 'color_game' %}
+                    <h6 class="mb-3">Choose Your Color</h6>
+                    <select name="color" class="form-control" required>
+                        <option value="">Select color...</option>
+                        <option value="red">🔴 Red</option>
+                        <option value="green">🟢 Green</option>
+                        <option value="blue">🔵 Blue</option>
+                        <option value="yellow">🟡 Yellow</option>
+                    </select>
+                    {% endif %}
+                    
+                    <div class="alert alert-info mt-3">
+                        <small>
+                            <strong>Cost:</strong> ₹{{ game.entry_fee }}<br>
+                            <strong>Your Balance:</strong> ₹{{ user.profile.wallet_balance }}
+                        </small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100 mt-2">
+                        <i class="bi bi-play-fill"></i> Enter Game
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="card mb-3">
+            <div class="card-body text-center">
+                <i class="bi bi-clock-history" style="font-size: 3rem; color: #ccc;"></i>
+                <p class="text-muted mt-3">No active round at the moment.</p>
+                <small>Check back later for new rounds!</small>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Recent Winners -->
+        {% if recent_winners %}
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h6 class="mb-0"><i class="bi bi-trophy"></i> Recent Winners</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for winner in recent_winners %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ winner.user.username }}</strong>
+                            <span class="badge bg-success">₹{{ winner.prize_amount }}</span>
+                        </div>
+                        <small class="text-muted">Round {{ winner.game_round.round_number }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

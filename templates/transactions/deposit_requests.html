@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Deposit Requests - Malamal Weekly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h2 class="text-white"><i class="bi bi-inbox"></i> My Deposit Requests</h2>
+    </div>
+    
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Deposit Requests</h5>
+            </div>
+            <div class="card-body">
+                {% if deposits %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Amount</th>
+                                <th>Payment Method</th>
+                                <th>Reference</th>
+                                <th>Status</th>
+                                <th>Requested Date</th>
+                                <th>Processed Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for deposit in deposits %}
+                            <tr>
+                                <td><strong>₹{{ deposit.amount }}</strong></td>
+                                <td>{{ deposit.get_payment_method_display }}</td>
+                                <td><code>{{ deposit.payment_reference|default:"-" }}</code></td>
+                                <td>
+                                    <span class="badge bg-{% if deposit.status == 'approved' %}success{% elif deposit.status == 'pending' %}warning{% else %}danger{% endif %}">
+                                        {{ deposit.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ deposit.requested_at|date:"M d, Y H:i" }}</td>
+                                <td>{{ deposit.processed_at|date:"M d, Y H:i"|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                    <p class="text-muted mt-3">No deposit requests yet.</p>
+                    <a href="{% url 'transactions:add_credits' %}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Add Credits
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

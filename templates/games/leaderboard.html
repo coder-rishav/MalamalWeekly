@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Leaderboard - Malamal Weekly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h2 class="text-white text-center"><i class="bi bi-trophy-fill"></i> Leaderboard</h2>
+        <p class="text-white text-center">Top Players Rankings</p>
+    </div>
+    
+    <!-- User's Position -->
+    <div class="col-12 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h5>Your Position</h5>
+                <h2 class="display-4">
+                    {% if user_leaderboard.rank %}
+                    #{{ user_leaderboard.rank }}
+                    {% else %}
+                    Unranked
+                    {% endif %}
+                </h2>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <small>Games Played</small>
+                        <h5>{{ user_leaderboard.total_games_played }}</h5>
+                    </div>
+                    <div class="col-md-3">
+                        <small>Wins</small>
+                        <h5>{{ user_leaderboard.total_wins }}</h5>
+                    </div>
+                    <div class="col-md-3">
+                        <small>Win Rate</small>
+                        <h5>{{ user_leaderboard.win_rate|floatformat:1 }}%</h5>
+                    </div>
+                    <div class="col-md-3">
+                        <small>Points</small>
+                        <h5>{{ user_leaderboard.points }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Players -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Top 100 Players</h5>
+            </div>
+            <div class="card-body">
+                {% if leaderboards %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Games Played</th>
+                                <th>Wins</th>
+                                <th>Win Rate</th>
+                                <th>Total Winnings</th>
+                                <th>Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leaderboard in leaderboards %}
+                            <tr {% if leaderboard.user == user %}class="table-primary"{% endif %}>
+                                <td>
+                                    {% if leaderboard.rank == 1 %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-trophy-fill"></i> {{ leaderboard.rank }}
+                                    </span>
+                                    {% elif leaderboard.rank == 2 %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-trophy"></i> {{ leaderboard.rank }}
+                                    </span>
+                                    {% elif leaderboard.rank == 3 %}
+                                    <span class="badge" style="background-color: #CD7F32; color: white;">
+                                        <i class="bi bi-trophy"></i> {{ leaderboard.rank }}
+                                    </span>
+                                    {% else %}
+                                    <strong>#{{ leaderboard.rank|default:"-" }}</strong>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ leaderboard.user.username }}</strong>
+                                    {% if leaderboard.user == user %}
+                                    <span class="badge bg-info">You</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ leaderboard.total_games_played }}</td>
+                                <td><span class="badge bg-success">{{ leaderboard.total_wins }}</span></td>
+                                <td>{{ leaderboard.win_rate|floatformat:1 }}%</td>
+                                <td><strong class="text-success">₹{{ leaderboard.total_winnings }}</strong></td>
+                                <td><strong>{{ leaderboard.points }}</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-trophy" style="font-size: 3rem; color: #ccc;"></i>
+                    <p class="text-muted mt-3">Leaderboard is empty. Start playing to get on the board!</p>
+                    <a href="{% url 'games:games_list' %}" class="btn btn-primary">
+                        <i class="bi bi-controller"></i> Play Games
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

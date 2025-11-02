@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Withdrawal Requests - Malamal Weekly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h2 class="text-white"><i class="bi bi-cash-stack"></i> My Withdrawal Requests</h2>
+    </div>
+    
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Withdrawal Requests</h5>
+            </div>
+            <div class="card-body">
+                {% if withdrawals %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Amount</th>
+                                <th>Bank</th>
+                                <th>Account Number</th>
+                                <th>Status</th>
+                                <th>Requested Date</th>
+                                <th>Processed Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for withdrawal in withdrawals %}
+                            <tr>
+                                <td><strong>₹{{ withdrawal.amount }}</strong></td>
+                                <td>{{ withdrawal.bank_name }}</td>
+                                <td><code>{{ withdrawal.account_number }}</code></td>
+                                <td>
+                                    <span class="badge bg-{% if withdrawal.status == 'completed' %}success{% elif withdrawal.status == 'approved' or withdrawal.status == 'processing' %}info{% elif withdrawal.status == 'pending' %}warning{% else %}danger{% endif %}">
+                                        {{ withdrawal.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ withdrawal.requested_at|date:"M d, Y H:i" }}</td>
+                                <td>{{ withdrawal.processed_at|date:"M d, Y H:i"|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                    <p class="text-muted mt-3">No withdrawal requests yet.</p>
+                    <a href="{% url 'transactions:withdraw_credits' %}" class="btn btn-warning">
+                        <i class="bi bi-cash"></i> Request Withdrawal
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

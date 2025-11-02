@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}My Entries - Malamal Weekly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <h2 class="text-white"><i class="bi bi-ticket-perforated"></i> My Game Entries</h2>
+    </div>
+    
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">All Your Entries</h5>
+            </div>
+            <div class="card-body">
+                {% if entries %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Entry Number</th>
+                                <th>Game</th>
+                                <th>Round</th>
+                                <th>Your Choice</th>
+                                <th>Entry Fee</th>
+                                <th>Status</th>
+                                <th>Result</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in entries %}
+                            <tr>
+                                <td><code>{{ entry.entry_number }}</code></td>
+                                <td>{{ entry.game_round.game.name }}</td>
+                                <td>Round #{{ entry.game_round.round_number }}</td>
+                                <td>
+                                    {% if entry.user_choice %}
+                                    <span class="badge bg-secondary">{{ entry.user_choice|join:", " }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>₹{{ entry.entry_fee_paid }}</td>
+                                <td>
+                                    <span class="badge bg-{% if entry.game_round.status == 'completed' %}success{% elif entry.game_round.status == 'open' %}info{% else %}warning{% endif %}">
+                                        {{ entry.game_round.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if entry.is_winner %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-trophy-fill"></i> Won ₹{{ entry.winning_amount }}
+                                    </span>
+                                    {% elif entry.game_round.status == 'completed' %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-x-circle"></i> No Win
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-clock"></i> Pending
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ entry.created_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                    <p class="text-muted mt-3">You haven't entered any games yet.</p>
+                    <a href="{% url 'games:games_list' %}" class="btn btn-primary">
+                        <i class="bi bi-controller"></i> Browse Games
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Winners - Malamal Weekly{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4 text-white text-center">
+        <h1><i class="bi bi-trophy-fill"></i> Hall of Winners</h1>
+        <p class="lead">Congratulations to all our winners!</p>
+    </div>
+    
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">All Winners</h5>
+            </div>
+            <div class="card-body">
+                {% if winners %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th><i class="bi bi-person"></i> Winner</th>
+                                <th><i class="bi bi-controller"></i> Game</th>
+                                <th><i class="bi bi-hash"></i> Round</th>
+                                <th><i class="bi bi-trophy"></i> Prize</th>
+                                <th><i class="bi bi-calendar"></i> Date</th>
+                                <th><i class="bi bi-check-circle"></i> Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for winner in winners %}
+                            <tr {% if winner.user == user %}class="table-success"{% endif %}>
+                                <td>
+                                    <strong>{{ winner.user.username }}</strong>
+                                    {% if winner.user == user %}
+                                    <span class="badge bg-success">You</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ winner.game_round.game.name }}</td>
+                                <td>Round #{{ winner.game_round.round_number }}</td>
+                                <td><strong class="text-success">₹{{ winner.prize_amount }}</strong></td>
+                                <td>{{ winner.announced_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    {% if winner.prize_credited %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Credited
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-clock"></i> Processing
+                                    </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-trophy" style="font-size: 3rem; color: #ccc;"></i>
+                    <p class="text-muted mt-3">No winners yet. Be the first!</p>
+                    <a href="{% url 'games:games_list' %}" class="btn btn-primary">
+                        <i class="bi bi-controller"></i> Play Games
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
