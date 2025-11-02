@@ -351,6 +351,49 @@ def game_rounds(request, game_id):
 
 @login_required
 @user_passes_test(is_admin, login_url='/admin-panel/login/')
+def create_new_round(request, game_id):
+    """Create a new round for a game"""
+    from datetime import timedelta
+    
+    game = get_object_or_404(Game, id=game_id)
+    
+    # Check if there's already an open round
+    existing_open = game.rounds.filter(status='open').exists()
+    if existing_open:
+        messages.warning(request, 'This game already has an open round. Close or complete it first.')
+        return redirect('custom_admin:game_rounds', game_id=game_id)
+    
+    if request.method == 'POST':
+        duration_days = int(request.POST.get('duration_days', 7))
+        
+        # Get the last round number
+        last_round = game.rounds.order_by('-round_number').first()
+        next_round_number = (last_round.round_number + 1) if last_round else 1
+        
+        # Create new round
+        now = timezone.now()
+        game_round = GameRound.objects.create(
+            game=game,
+            round_number=next_round_number,
+            scheduled_start=now,
+            scheduled_end=now + timedelta(days=duration_days),
+            actual_start=now,
+            status='open',
+            created_by=request.user
+        )
+        
+        messages.success(request, f'Round #{game_round.round_number} created successfully! Entry open for {duration_days} days.')
+        return redirect('custom_admin:game_rounds', game_id=game_id)
+    
+    # GET request - show form
+    context = {
+        'game': game,
+    }
+    return render(request, 'custom_admin/create_round.html', context)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
 def close_round(request, round_id):
     """Close a round for entries"""
     game_round = get_object_or_404(GameRound, id=round_id)

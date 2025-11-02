@@ -1,0 +1,76 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Create New Round - Admin Panel{% endblock %}
+{% block page_title %}Create New Round - {{ game.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'custom_admin:game_rounds' game.id %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Rounds
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Create New Game Round</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> <strong>Info:</strong> 
+            Creating a new round will allow users to participate in {{ game.name }} again. 
+            The round will start immediately and accept entries for the specified duration.
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6>Game Details:</h6>
+                    <p><strong>Game:</strong> {{ game.name }}</p>
+                    <p><strong>Type:</strong> {{ game.get_game_type_display }}</p>
+                    <p><strong>Entry Fee:</strong> ₹{{ game.entry_fee }}</p>
+                    <p><strong>Prize:</strong> ₹{{ game.winning_amount }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Round Configuration:</h6>
+                    <div class="mb-3">
+                        <label for="duration_days" class="form-label">
+                            <i class="bi bi-calendar"></i> Round Duration (Days)
+                        </label>
+                        <select name="duration_days" id="duration_days" class="form-select" required>
+                            <option value="1">1 Day</option>
+                            <option value="2">2 Days</option>
+                            <option value="3">3 Days</option>
+                            <option value="5">5 Days</option>
+                            <option value="7" selected>7 Days (1 Week)</option>
+                            <option value="14">14 Days (2 Weeks)</option>
+                            <option value="30">30 Days (1 Month)</option>
+                        </select>
+                        <small class="text-muted">How long users can enter this round</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i> <strong>Important:</strong>
+                <ul class="mb-0">
+                    <li>The round will start immediately after creation</li>
+                    <li>Users can start entering right away</li>
+                    <li>You can manually close the round anytime before the duration ends</li>
+                    <li>After closing, you'll need to select a winner to complete the round</li>
+                </ul>
+            </div>
+            
+            <div class="text-center">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-play-circle"></i> Create & Start Round
+                </button>
+                <a href="{% url 'custom_admin:game_rounds' game.id %}" class="btn btn-secondary btn-lg">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

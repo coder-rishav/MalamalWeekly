@@ -28,6 +28,7 @@ urlpatterns = [
     # Games
     path('games/', views.games_management, name='games_management'),
     path('games/<int:game_id>/rounds/', views.game_rounds, name='game_rounds'),
+    path('games/<int:game_id>/create-round/', views.create_new_round, name='create_new_round'),
     path('rounds/<int:round_id>/close/', views.close_round, name='close_round'),
     path('rounds/<int:round_id>/select-winner/', views.select_winner, name='select_winner'),
     
