@@ -80,6 +80,12 @@
                         <a class="nav-link {% if 'games' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:games_management' %}">
                             <i class="bi bi-controller"></i> Games
                         </a>
+                        <a class="nav-link {% if 'appeal' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:ban_appeals_list' %}?status=pending">
+                            <i class="bi bi-envelope-exclamation"></i> Ban Appeals
+                            {% if pending_appeals_count %}
+                            <span class="badge bg-warning text-dark">{{ pending_appeals_count }}</span>
+                            {% endif %}
+                        </a>
                         <a class="nav-link {% if 'transaction' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:transactions_list' %}">
                             <i class="bi bi-receipt"></i> Transactions
                         </a>

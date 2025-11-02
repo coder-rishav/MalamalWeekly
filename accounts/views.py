@@ -47,11 +47,12 @@ def user_login(request):
                 # Ensure user has a profile
                 profile, created = UserProfile.objects.get_or_create(user=user)
                 
-                if profile.is_blocked:
-                    messages.error(request, 'Your account has been blocked. Please contact support.')
-                    return redirect('accounts:login')
-                
+                # Allow login even if blocked, but redirect to banned page
                 login(request, user)
+                
+                if profile.is_blocked:
+                    return redirect('accounts:account_banned')
+                
                 messages.success(request, f'Welcome back, {user.username}!')
                 next_url = request.GET.get('next', 'games:dashboard')
                 return redirect(next_url)
@@ -70,11 +71,29 @@ def user_logout(request):
 
 @login_required
 def account_banned(request):
-    """Show banned account page"""
+    """Show banned account page with appeal option"""
     profile = request.user.profile
+    
+    # Check if user has already submitted an appeal
+    from .models import BanAppeal
+    existing_appeal = BanAppeal.objects.filter(user=request.user).first()
+    
+    if request.method == 'POST' and not existing_appeal:
+        appeal_message = request.POST.get('appeal_message', '').strip()
+        
+        if appeal_message:
+            # Create new appeal
+            BanAppeal.objects.create(
+                user=request.user,
+                appeal_message=appeal_message
+            )
+            messages.success(request, 'Your appeal has been submitted successfully. Our team will review it soon.')
+        else:
+            messages.error(request, 'Please provide a message for your appeal.')
     
     context = {
         'reason': profile.blocked_reason if profile.is_blocked else 'Account suspended',
+        'existing_appeal': existing_appeal,
     }
     return render(request, 'accounts/account_banned.html', context)
 

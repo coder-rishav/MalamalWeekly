@@ -1,0 +1,147 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Review Appeal - Admin Panel{% endblock %}
+{% block page_title %}Review Ban Appeal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Appeal Details -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Appeal Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="text-muted">User</label>
+                        <p><strong>{{ appeal.user.username }}</strong></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted">Email</label>
+                        <p>{{ appeal.user.email }}</p>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="text-muted">Submitted On</label>
+                    <p>{{ appeal.submitted_at|date:"F d, Y" }} at {{ appeal.submitted_at|time:"H:i" }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="text-muted">Current Status</label>
+                    <p>
+                        {% if appeal.status == 'pending' %}
+                        <span class="badge bg-warning">Pending Review</span>
+                        {% elif appeal.status == 'approved' %}
+                        <span class="badge bg-success">Approved</span>
+                        {% elif appeal.status == 'rejected' %}
+                        <span class="badge bg-danger">Rejected</span>
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="text-muted">Ban Reason</label>
+                    <div class="alert alert-danger">
+                        <strong>{{ appeal.user.profile.blocked_reason }}</strong>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="text-muted">Banned By</label>
+                    <p>{{ appeal.user.profile.blocked_by }} on {{ appeal.user.profile.blocked_at|date:"F d, Y" }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="text-muted">Appeal Message</label>
+                    <div class="border p-3 bg-light rounded">
+                        {{ appeal.appeal_message|linebreaks }}
+                    </div>
+                </div>
+                
+                {% if appeal.status != 'pending' %}
+                <div class="mb-3">
+                    <label class="text-muted">Reviewed By</label>
+                    <p>{{ appeal.reviewed_by }} on {{ appeal.reviewed_at|date:"F d, Y" }} at {{ appeal.reviewed_at|time:"H:i" }}</p>
+                </div>
+                
+                {% if appeal.admin_response %}
+                <div class="mb-3">
+                    <label class="text-muted">Admin Response</label>
+                    <div class="border p-3 bg-light rounded">
+                        {{ appeal.admin_response|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- User Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-person"></i> User Information</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Username:</strong><br>{{ appeal.user.username }}</p>
+                <p><strong>Full Name:</strong><br>{{ appeal.user.first_name }} {{ appeal.user.last_name }}</p>
+                <p><strong>Email:</strong><br>{{ appeal.user.email }}</p>
+                <p><strong>Phone:</strong><br>{{ appeal.user.profile.phone|default:"N/A" }}</p>
+                <p><strong>Account Created:</strong><br>{{ appeal.user.date_joined|date:"M d, Y" }}</p>
+                <p><strong>Current Status:</strong><br>
+                    {% if appeal.user.profile.is_blocked %}
+                    <span class="badge bg-danger">Banned</span>
+                    {% else %}
+                    <span class="badge bg-success">Active</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        {% if appeal.status == 'pending' %}
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-white">
+                <h6 class="mb-0"><i class="bi bi-gavel"></i> Review Actions</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="admin_response" class="form-label">Your Response (Optional)</label>
+                        <textarea class="form-control" id="admin_response" name="admin_response" rows="4" 
+                                  placeholder="Enter your response or explanation..."></textarea>
+                        <small class="form-text text-muted">This will be visible to the user</small>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" name="action" value="approve" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Approve & Unban User
+                        </button>
+                        <button type="submit" name="action" value="reject" class="btn btn-danger">
+                            <i class="bi bi-x-circle"></i> Reject Appeal
+                        </button>
+                        <a href="{% url 'custom_admin:ban_appeals_list' %}?status=pending" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center">
+                <p class="text-muted">This appeal has already been reviewed.</p>
+                <a href="{% url 'custom_admin:ban_appeals_list' %}?status=all" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

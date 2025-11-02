@@ -919,3 +919,85 @@ def transactions_list(request):
         'transaction_type': transaction_type,
     }
     return render(request, 'custom_admin/transactions_list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
+def ban_appeals_list(request):
+    """View all ban appeals"""
+    status_filter = request.GET.get('status', 'pending')
+    
+    from accounts.models import BanAppeal
+    
+    if status_filter == 'all':
+        appeals = BanAppeal.objects.all()
+    else:
+        appeals = BanAppeal.objects.filter(status=status_filter)
+    
+    appeals = appeals.select_related('user', 'reviewed_by').order_by('-submitted_at')
+    
+    context = {
+        'appeals': appeals,
+        'status_filter': status_filter,
+    }
+    return render(request, 'custom_admin/ban_appeals.html', context)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
+def review_appeal(request, appeal_id):
+    """Review and respond to a ban appeal"""
+    from accounts.models import BanAppeal
+    
+    appeal = get_object_or_404(BanAppeal, id=appeal_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        admin_response = request.POST.get('admin_response', '')
+        
+        if action == 'approve':
+            # Approve appeal and unban user
+            appeal.status = 'approved'
+            appeal.reviewed_at = timezone.now()
+            appeal.reviewed_by = request.user
+            appeal.admin_response = admin_response
+            appeal.save()
+            
+            # Unban the user
+            profile = appeal.user.profile
+            profile.is_blocked = False
+            profile.blocked_reason = None
+            profile.blocked_at = None
+            profile.blocked_by = None
+            
+            # Restore default permissions
+            profile.can_play_games = True
+            profile.can_deposit = True
+            profile.can_withdraw = True
+            profile.can_view_games = True
+            profile.can_view_leaderboard = True
+            profile.can_view_transaction_history = True
+            profile.can_edit_profile = True
+            
+            profile.last_permission_change = timezone.now()
+            profile.permission_changed_by = request.user
+            profile.save()
+            
+            messages.success(request, f'Appeal approved! User {appeal.user.username} has been unbanned.')
+            
+        elif action == 'reject':
+            # Reject appeal
+            appeal.status = 'rejected'
+            appeal.reviewed_at = timezone.now()
+            appeal.reviewed_by = request.user
+            appeal.admin_response = admin_response
+            appeal.save()
+            
+            messages.success(request, f'Appeal rejected for user {appeal.user.username}.')
+        
+        return redirect('custom_admin:ban_appeals_list')
+    
+    context = {
+        'appeal': appeal,
+    }
+    return render(request, 'custom_admin/review_appeal.html', context)

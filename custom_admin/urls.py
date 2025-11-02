@@ -37,4 +37,8 @@ urlpatterns = [
     
     # Transactions
     path('transactions/', views.transactions_list, name='transactions_list'),
+    
+    # Ban Appeals
+    path('appeals/', views.ban_appeals_list, name='ban_appeals_list'),
+    path('appeals/<int:appeal_id>/review/', views.review_appeal, name='review_appeal'),
 ]

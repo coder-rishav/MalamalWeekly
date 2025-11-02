@@ -63,6 +63,84 @@
             </ul>
         </div>
         
+        <!-- Appeal Form Section -->
+        {% if not existing_appeal %}
+        <div class="mt-4">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-file-text"></i> Submit an Appeal</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">If you believe your account was banned by mistake, you can submit an appeal for review. <strong>You can only submit one appeal.</strong></p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="appeal_message" class="form-label"><strong>Your Appeal Message *</strong></label>
+                            <textarea class="form-control" id="appeal_message" name="appeal_message" rows="6" required 
+                                      placeholder="Please explain why you believe the ban should be lifted. Include any relevant details that might help us review your case."></textarea>
+                            <small class="text-muted">Be honest and detailed. Our team will carefully review your appeal.</small>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <small><i class="bi bi-exclamation-triangle"></i> <strong>Note:</strong> You can only submit one appeal. Make sure to explain your situation clearly.</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-send"></i> Submit Appeal
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="mt-4">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Appeal Status</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Status:</strong> 
+                        {% if existing_appeal.status == 'pending' %}
+                        <span class="badge bg-warning">Pending Review</span>
+                        {% elif existing_appeal.status == 'approved' %}
+                        <span class="badge bg-success">Approved</span>
+                        {% elif existing_appeal.status == 'rejected' %}
+                        <span class="badge bg-danger">Rejected</span>
+                        {% endif %}
+                    </p>
+                    <p class="mb-2"><strong>Submitted:</strong> {{ existing_appeal.submitted_at|date:"M d, Y H:i" }}</p>
+                    
+                    {% if existing_appeal.status == 'pending' %}
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-hourglass-split"></i> Your appeal is under review. Our team will respond soon.
+                    </div>
+                    {% elif existing_appeal.status == 'approved' %}
+                    <div class="alert alert-success mt-3">
+                        <i class="bi bi-check-circle"></i> Your appeal has been approved! Your account should be unbanned shortly.
+                    </div>
+                    {% elif existing_appeal.status == 'rejected' %}
+                    <div class="alert alert-danger mt-3">
+                        <i class="bi bi-x-circle"></i> Your appeal has been rejected.
+                        {% if existing_appeal.admin_response %}
+                        <hr>
+                        <strong>Admin Response:</strong><br>
+                        {{ existing_appeal.admin_response }}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-3">
+                        <strong>Your Appeal Message:</strong>
+                        <div class="p-3 bg-light rounded mt-2">
+                            {{ existing_appeal.appeal_message|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
         <div class="mt-4 p-3 bg-light rounded">
             <h6 class="mb-2"><i class="bi bi-envelope"></i> Need Help?</h6>
             <p class="mb-2 small">Contact Support: <strong>support@malamalweekly.com</strong></p>

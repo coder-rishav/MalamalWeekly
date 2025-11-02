@@ -1,0 +1,121 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Ban Appeals - Admin Panel{% endblock %}
+{% block page_title %}Ban Appeals Management{% endblock %}
+
+{% block content %}
+<!-- Filter Tabs -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'pending' %}active{% endif %}" 
+           href="?status=pending">
+            <i class="bi bi-hourglass-split"></i> Pending ({{ appeals|length }})
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'approved' %}active{% endif %}" 
+           href="?status=approved">
+            <i class="bi bi-check-circle"></i> Approved
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'rejected' %}active{% endif %}" 
+           href="?status=rejected">
+            <i class="bi bi-x-circle"></i> Rejected
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'all' %}active{% endif %}" 
+           href="?status=all">
+            <i class="bi bi-list"></i> All Appeals
+        </a>
+    </li>
+</ul>
+
+<!-- Appeals List -->
+<div class="card">
+    <div class="card-body">
+        {% if appeals %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Ban Reason</th>
+                        <th>Appeal Message</th>
+                        <th>Submitted</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appeal in appeals %}
+                    <tr>
+                        <td>
+                            <strong>{{ appeal.user.username }}</strong><br>
+                            <small class="text-muted">{{ appeal.user.email }}</small>
+                        </td>
+                        <td>
+                            {% if appeal.user.profile.blocked_reason %}
+                            <span class="badge bg-danger">{{ appeal.user.profile.blocked_reason|truncatewords:10 }}</span>
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="max-width: 300px;">
+                                {{ appeal.appeal_message|truncatewords:20 }}
+                            </div>
+                        </td>
+                        <td>
+                            <small>{{ appeal.submitted_at|date:"M d, Y" }}<br>{{ appeal.submitted_at|time:"H:i" }}</small>
+                        </td>
+                        <td>
+                            {% if appeal.status == 'pending' %}
+                            <span class="badge bg-warning">Pending</span>
+                            {% elif appeal.status == 'approved' %}
+                            <span class="badge bg-success">Approved</span>
+                            {% elif appeal.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if appeal.status == 'pending' %}
+                            <a href="{% url 'custom_admin:review_appeal' appeal.id %}" 
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye"></i> Review
+                            </a>
+                            {% else %}
+                            <a href="{% url 'custom_admin:review_appeal' appeal.id %}" 
+                               class="btn btn-sm btn-secondary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No appeals found in this category</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5>Pending Appeals</h5>
+                <h2>{{ appeals|length }}</h2>
+                <small>Awaiting review</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -76,6 +76,33 @@ class UserProfile(models.Model):
         self.save()
 
 
+class BanAppeal(models.Model):
+    """Model for users to appeal their ban - one time only"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='ban_appeal')
+    appeal_message = models.TextField(help_text="User's appeal message")
+    
+    # Status and tracking
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_appeals')
+    admin_response = models.TextField(blank=True, null=True, help_text="Admin's response to the appeal")
+    
+    class Meta:
+        verbose_name = 'Ban Appeal'
+        verbose_name_plural = 'Ban Appeals'
+        ordering = ['-submitted_at']
+    
+    def __str__(self):
+        return f"Appeal by {self.user.username} - {self.status}"
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """Automatically create profile when user is created"""
