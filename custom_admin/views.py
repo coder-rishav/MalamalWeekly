@@ -337,6 +337,39 @@ def games_management(request):
 
 @login_required
 @user_passes_test(is_admin, login_url='/admin-panel/login/')
+def edit_game(request, game_id):
+    """Edit game details"""
+    game = get_object_or_404(Game, id=game_id)
+    
+    if request.method == 'POST':
+        # Update game details
+        game.name = request.POST.get('name')
+        game.description = request.POST.get('description')
+        game.rules = request.POST.get('rules')
+        game.entry_fee = request.POST.get('entry_fee')
+        game.winning_amount = request.POST.get('winning_amount')
+        game.min_participants = request.POST.get('min_participants')
+        game.max_participants = request.POST.get('max_participants')
+        game.status = request.POST.get('status')
+        game.is_featured = request.POST.get('is_featured') == 'on'
+        
+        # Handle image upload
+        if 'image' in request.FILES:
+            game.image = request.FILES['image']
+        
+        game.save()
+        
+        messages.success(request, f'{game.name} updated successfully!')
+        return redirect('custom_admin:games_management')
+    
+    context = {
+        'game': game,
+    }
+    return render(request, 'custom_admin/edit_game.html', context)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
 def game_rounds(request, game_id):
     """View game rounds"""
     game = get_object_or_404(Game, id=game_id)

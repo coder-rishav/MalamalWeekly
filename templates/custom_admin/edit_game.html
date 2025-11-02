@@ -1,0 +1,159 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Edit Game - Admin Panel{% endblock %}
+{% block page_title %}Edit Game - {{ game.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'custom_admin:games_management' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Games
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Game Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <h6 class="border-bottom pb-2 mb-3">Basic Information</h6>
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Game Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ game.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description *</label>
+                        <textarea class="form-control" id="description" name="description" 
+                                  rows="3" required>{{ game.description }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="rules" class="form-label">Game Rules *</label>
+                        <textarea class="form-control" id="rules" name="rules" 
+                                  rows="5" required>{{ game.rules }}</textarea>
+                        <small class="text-muted">Explain how to play and win</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Game Image</label>
+                        {% if game.image %}
+                        <div class="mb-2">
+                            <img src="{{ game.image.url }}" alt="{{ game.name }}" 
+                                 class="img-thumbnail" style="max-height: 150px;">
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        <small class="text-muted">Upload new image to replace current one</small>
+                    </div>
+                    
+                    <!-- Financial Settings -->
+                    <h6 class="border-bottom pb-2 mb-3 mt-4">Financial Settings</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="entry_fee" class="form-label">Entry Fee (₹) *</label>
+                            <input type="number" class="form-control" id="entry_fee" name="entry_fee" 
+                                   value="{{ game.entry_fee }}" step="0.01" min="0" required>
+                            <small class="text-muted">Cost to participate</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="winning_amount" class="form-label">Prize Amount (₹) *</label>
+                            <input type="number" class="form-control" id="winning_amount" name="winning_amount" 
+                                   value="{{ game.winning_amount }}" step="0.01" min="0" required>
+                            <small class="text-muted">Winner's prize</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Participant Settings -->
+                    <h6 class="border-bottom pb-2 mb-3 mt-4">Participant Settings</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="min_participants" class="form-label">Minimum Participants *</label>
+                            <input type="number" class="form-control" id="min_participants" name="min_participants" 
+                                   value="{{ game.min_participants }}" min="1" required>
+                            <small class="text-muted">Required to start</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="max_participants" class="form-label">Maximum Participants *</label>
+                            <input type="number" class="form-control" id="max_participants" name="max_participants" 
+                                   value="{{ game.max_participants }}" min="1" required>
+                            <small class="text-muted">Entry limit per round</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Settings -->
+                    <h6 class="border-bottom pb-2 mb-3 mt-4">Status & Visibility</h6>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Game Status *</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="active" {% if game.status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if game.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                            <option value="maintenance" {% if game.status == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_featured" name="is_featured" 
+                               {% if game.is_featured %}checked{% endif %}>
+                        <label class="form-check-label" for="is_featured">
+                            Featured Game (Show on homepage)
+                        </label>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save"></i> Save Changes
+                        </button>
+                        <a href="{% url 'custom_admin:games_management' %}" class="btn btn-secondary btn-lg">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Info Sidebar -->
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Game Information</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Game Type:</strong><br>{{ game.get_game_type_display }}</p>
+                <p><strong>Created:</strong><br>{{ game.created_at|date:"M d, Y H:i" }}</p>
+                <p><strong>Total Rounds:</strong><br>{{ game.total_rounds_played }}</p>
+                <p><strong>Total Winners:</strong><br>{{ game.total_winners }}</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Important Notes</h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0 small">
+                    <li>Changes to entry fee and prize affect new rounds only</li>
+                    <li>Existing open rounds keep their original values</li>
+                    <li>Setting to "Inactive" hides game from users</li>
+                    <li>Game type cannot be changed</li>
+                    <li>Featured games appear on homepage</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
