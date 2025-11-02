@@ -11,9 +11,13 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header bg-info text-white">
-                <h5 class="mb-0">All Your Entries</h5>
+                <h5 class="mb-0"><i class="bi bi-list-check"></i> All Your Entries - Transparent Results</h5>
             </div>
             <div class="card-body">
+                <div class="alert alert-info mb-3">
+                    <i class="bi bi-shield-check"></i> <strong>100% Transparency:</strong> 
+                    You can see the winning combination for all completed rounds to verify results are fair and random.
+                </div>
                 {% if entries %}
                 <div class="table-responsive">
                     <table class="table table-hover">
@@ -23,6 +27,7 @@
                                 <th>Game</th>
                                 <th>Round</th>
                                 <th>Your Choice</th>
+                                <th>Winning Combination</th>
                                 <th>Entry Fee</th>
                                 <th>Status</th>
                                 <th>Result</th>
@@ -31,13 +36,24 @@
                         </thead>
                         <tbody>
                             {% for entry in entries %}
-                            <tr>
+                            <tr class="{% if entry.is_winner %}table-success{% elif entry.game_round.status == 'completed' %}table-light{% endif %}">
                                 <td><code>{{ entry.entry_number }}</code></td>
-                                <td>{{ entry.game_round.game.name }}</td>
+                                <td><strong>{{ entry.game_round.game.name }}</strong></td>
                                 <td>Round #{{ entry.game_round.round_number }}</td>
                                 <td>
                                     {% if entry.user_choice %}
-                                    <span class="badge bg-secondary">{{ entry.user_choice|join:", " }}</span>
+                                    <span class="badge bg-primary">{{ entry.user_choice|join:", " }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if entry.game_round.status == 'completed' and entry.game_round.winning_combination %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-star-fill"></i> {{ entry.game_round.winning_combination|join:", " }}
+                                    </span>
+                                    {% elif entry.game_round.status == 'completed' %}
+                                    <span class="text-muted"><small>Not declared</small></span>
+                                    {% else %}
+                                    <span class="text-muted"><small>Pending</small></span>
                                     {% endif %}
                                 </td>
                                 <td>₹{{ entry.entry_fee_paid }}</td>
@@ -52,17 +68,35 @@
                                         <i class="bi bi-trophy-fill"></i> Won ₹{{ entry.winning_amount }}
                                     </span>
                                     {% elif entry.game_round.status == 'completed' %}
-                                    <span class="badge bg-secondary">
-                                        <i class="bi bi-x-circle"></i> No Win
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-x-circle"></i> Lost
                                     </span>
                                     {% else %}
                                     <span class="badge bg-warning">
-                                        <i class="bi bi-clock"></i> Pending
+                                        <i class="bi bi-clock"></i> Awaiting Result
                                     </span>
                                     {% endif %}
                                 </td>
-                                <td>{{ entry.created_at|date:"M d, Y H:i" }}</td>
+                                <td><small>{{ entry.created_at|date:"M d, Y H:i" }}</small></td>
                             </tr>
+                            {% if entry.game_round.status == 'completed' and entry.game_round.winning_combination %}
+                            <tr class="{% if entry.is_winner %}table-success{% else %}table-light{% endif %}">
+                                <td colspan="9">
+                                    <div class="p-2">
+                                        <strong><i class="bi bi-info-circle"></i> Result Analysis:</strong>
+                                        <span class="ms-2">Your Choice: <code class="text-primary">{{ entry.user_choice|join:", " }}</code></span>
+                                        <span class="ms-2">|</span>
+                                        <span class="ms-2">Winning Combination: <code class="text-warning">{{ entry.game_round.winning_combination|join:", " }}</code></span>
+                                        <span class="ms-2">|</span>
+                                        {% if entry.is_winner %}
+                                        <span class="text-success ms-2"><i class="bi bi-check-circle-fill"></i> <strong>EXACT MATCH - YOU WON!</strong></span>
+                                        {% else %}
+                                        <span class="text-danger ms-2"><i class="bi bi-x-circle-fill"></i> No match - Better luck next time!</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
