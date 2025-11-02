@@ -1,0 +1,83 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Users - Admin Panel{% endblock %}
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<!-- Search Bar -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Search by username, email, name..." 
+                       value="{{ search }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card">
+    <div class="card-body">
+        {% if users %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Wallet Balance</th>
+                        <th>Joined</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>#{{ user.id }}</td>
+                        <td>
+                            <strong>{{ user.username }}</strong><br>
+                            <small class="text-muted">{{ user.first_name }} {{ user.last_name }}</small>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <strong class="text-success">₹{{ user.profile.wallet_balance }}</strong>
+                        </td>
+                        <td>
+                            <small>{{ user.date_joined|date:"M d, Y" }}</small>
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'custom_admin:user_detail' user.id %}" 
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-people" style="font-size: 4rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No users found</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

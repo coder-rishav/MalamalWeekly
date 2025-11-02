@@ -1,0 +1,32 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Reject Withdrawal - Admin Panel{% endblock %}
+{% block page_title %}Reject Withdrawal Request{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h5>Confirm Rejection</h5>
+        <p>Are you sure you want to reject this withdrawal request?</p>
+        
+        <div class="alert alert-info">
+            <strong>User:</strong> {{ withdrawal_request.user.username }}<br>
+            <strong>Amount:</strong> ₹{{ withdrawal_request.amount }}<br>
+            <strong>Bank:</strong> {{ withdrawal_request.bank_name }}
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="admin_notes" class="form-label">Reason for Rejection</label>
+                <textarea name="admin_notes" id="admin_notes" class="form-control" rows="3" required></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-x-circle"></i> Reject Request
+            </button>
+            <a href="{% url 'custom_admin:withdrawal_requests' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

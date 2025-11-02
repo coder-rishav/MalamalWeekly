@@ -1,0 +1,65 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}{{ game.name }} Rounds - Admin Panel{% endblock %}
+{% block page_title %}{{ game.name }} - Rounds{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'custom_admin:games_management' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Games
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if rounds %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Round #</th>
+                        <th>Status</th>
+                        <th>Participants</th>
+                        <th>Pool Amount</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for round in rounds %}
+                    <tr>
+                        <td><strong>#{{ round.round_number }}</strong></td>
+                        <td>
+                            <span class="badge bg-{% if round.status == 'open' %}success{% elif round.status == 'closed' %}warning{% elif round.status == 'completed' %}primary{% else %}secondary{% endif %}">
+                                {{ round.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ round.total_participants }}/{{ game.max_participants }}</td>
+                        <td><strong class="text-success">₹{{ round.total_pool_amount }}</strong></td>
+                        <td><small>{{ round.scheduled_start|date:"M d, Y H:i" }}</small></td>
+                        <td><small>{{ round.scheduled_end|date:"M d, Y H:i" }}</small></td>
+                        <td>
+                            {% if round.status == 'closed' %}
+                            <a href="{% url 'custom_admin:select_winner' round.id %}" 
+                               class="btn btn-sm btn-warning">
+                                <i class="bi bi-trophy"></i> Select Winner
+                            </a>
+                            {% elif round.status == 'completed' %}
+                            <span class="badge bg-success">Winner Selected</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-calendar-x" style="font-size: 4rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No rounds found for this game</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

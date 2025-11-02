@@ -1,0 +1,109 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Withdrawal Requests - Admin Panel{% endblock %}
+{% block page_title %}Withdrawal Requests{% endblock %}
+
+{% block content %}
+<!-- Filter Tabs -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'pending' %}active{% endif %}" 
+           href="?status=pending">Pending</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'approved' %}active{% endif %}" 
+           href="?status=approved">Approved</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'rejected' %}active{% endif %}" 
+           href="?status=rejected">Rejected</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if status_filter == 'all' %}active{% endif %}" 
+           href="?status=all">All</a>
+    </li>
+</ul>
+
+<!-- Requests Table -->
+<div class="card">
+    <div class="card-body">
+        {% if requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Bank Details</th>
+                        <th>Status</th>
+                        <th>Requested</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in requests %}
+                    <tr>
+                        <td>#{{ request.id }}</td>
+                        <td>
+                            <strong>{{ request.user.username }}</strong><br>
+                            <small class="text-muted">Balance: ₹{{ request.user.profile.wallet_balance }}</small>
+                        </td>
+                        <td><strong class="text-danger">₹{{ request.amount }}</strong></td>
+                        <td>
+                            <strong>{{ request.bank_name }}</strong><br>
+                            <small>Acc: {{ request.account_number }}</small><br>
+                            <small>IFSC: {{ request.ifsc_code }}</small><br>
+                            <small>Holder: {{ request.account_holder_name }}</small>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ request.status }}">
+                                {{ request.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <small>{{ request.requested_at|date:"M d, Y H:i" }}</small>
+                        </td>
+                        <td>
+                            {% if request.status == 'pending' %}
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'custom_admin:approve_withdrawal' request.id %}" 
+                                   class="btn btn-success"
+                                   onclick="return confirm('Approve withdrawal of ₹{{ request.amount }} for {{ request.user.username }}?')">
+                                    <i class="bi bi-check-circle"></i> Approve
+                                </a>
+                                <a href="{% url 'custom_admin:reject_withdrawal' request.id %}" 
+                                   class="btn btn-danger">
+                                    <i class="bi bi-x-circle"></i> Reject
+                                </a>
+                            </div>
+                            {% else %}
+                            <small class="text-muted">
+                                By {{ request.processed_by.username }}<br>
+                                {{ request.processed_at|date:"M d, Y H:i" }}
+                            </small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% if request.admin_notes %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="p-2 bg-light">
+                                <strong>Admin Notes:</strong> {{ request.admin_notes }}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No withdrawal requests found</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

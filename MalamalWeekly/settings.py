@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'accounts',
     'games',
     'transactions',
+    'custom_admin',
 ]
 
 MIDDLEWARE = [

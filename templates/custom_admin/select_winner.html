@@ -1,0 +1,83 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Select Winner - Admin Panel{% endblock %}
+{% block page_title %}Select Winner - {{ game_round.game.name }} Round #{{ game_round.round_number }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'custom_admin:game_rounds' game_round.game.id %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Rounds
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5>Round Information</h5>
+        <div class="row">
+            <div class="col-md-3">
+                <strong>Total Participants:</strong> {{ entries.count }}
+            </div>
+            <div class="col-md-3">
+                <strong>Pool Amount:</strong> ₹{{ game_round.total_pool_amount }}
+            </div>
+            <div class="col-md-3">
+                <strong>Prize:</strong> ₹{{ game_round.game.winning_amount }}
+            </div>
+            <div class="col-md-3">
+                <strong>Status:</strong> <span class="badge bg-warning">{{ game_round.get_status_display }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-warning">
+        <h5 class="mb-0"><i class="bi bi-trophy"></i> Select Winner from Entries</h5>
+    </div>
+    <div class="card-body">
+        {% if entries %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Entry #</th>
+                            <th>User</th>
+                            <th>Choice</th>
+                            <th>Entry Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                        <tr>
+                            <td>
+                                <input type="radio" name="entry_id" value="{{ entry.id }}" required>
+                            </td>
+                            <td><code>{{ entry.entry_number }}</code></td>
+                            <td>
+                                <strong>{{ entry.user.username }}</strong><br>
+                                <small class="text-muted">{{ entry.user.email }}</small>
+                            </td>
+                            <td><code>{{ entry.user_choice }}</code></td>
+                            <td><small>{{ entry.created_at|date:"M d, Y H:i" }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-warning btn-lg" 
+                        onclick="return confirm('Are you sure you want to select this winner? This action cannot be undone.')">
+                    <i class="bi bi-trophy-fill"></i> Declare Winner
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <p class="text-muted text-center">No entries found</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

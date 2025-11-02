@@ -1,0 +1,54 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Games Management - Admin Panel{% endblock %}
+{% block page_title %}Games Management{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        {% if games %}
+        <div class="row">
+            {% for game in games %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    {% if game.image %}
+                    <img src="{{ game.image.url }}" class="card-img-top" alt="{{ game.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ game.name }}</h5>
+                        <p class="card-text">{{ game.description|truncatewords:20 }}</p>
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <small class="text-muted">Entry Fee</small>
+                                <h6 class="text-primary">₹{{ game.entry_fee }}</h6>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Prize</small>
+                                <h6 class="text-success">₹{{ game.winning_amount }}</h6>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-{{ game.status }}">
+                                {{ game.get_status_display }}
+                            </span>
+                            <a href="{% url 'custom_admin:game_rounds' game.id %}" 
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-list"></i> View Rounds
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-controller" style="font-size: 4rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No games found</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

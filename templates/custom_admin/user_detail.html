@@ -1,0 +1,116 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}User Detail - Admin Panel{% endblock %}
+{% block page_title %}User Details - {{ user_obj.username }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'custom_admin:users_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Users
+    </a>
+</div>
+
+<div class="row">
+    <!-- User Info -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person"></i> User Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Username:</strong> {{ user_obj.username }}</p>
+                <p><strong>Email:</strong> {{ user_obj.email }}</p>
+                <p><strong>Name:</strong> {{ user_obj.first_name }} {{ user_obj.last_name }}</p>
+                <p><strong>Joined:</strong> {{ user_obj.date_joined|date:"M d, Y" }}</p>
+                <p><strong>Status:</strong> 
+                    {% if user_obj.is_active %}
+                    <span class="badge bg-success">Active</span>
+                    {% else %}
+                    <span class="badge bg-danger">Inactive</span>
+                    {% endif %}
+                </p>
+                <hr>
+                <h6>Wallet</h6>
+                <h3 class="text-success">₹{{ profile.wallet_balance }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="col-md-8 mb-4">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-receipt"></i> Recent Transactions</h5>
+            </div>
+            <div class="card-body">
+                {% if transactions %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ transaction.get_transaction_type_display }}</td>
+                                <td>₹{{ transaction.amount }}</td>
+                                <td><span class="badge badge-{{ transaction.status }}">{{ transaction.get_status_display }}</span></td>
+                                <td><small>{{ transaction.created_at|date:"M d, Y H:i" }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No transactions</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-joystick"></i> Recent Game Entries</h5>
+            </div>
+            <div class="card-body">
+                {% if entries %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Game</th>
+                                <th>Round</th>
+                                <th>Entry</th>
+                                <th>Winner</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in entries %}
+                            <tr>
+                                <td>{{ entry.game_round.game.name }}</td>
+                                <td>#{{ entry.game_round.round_number }}</td>
+                                <td><code>{{ entry.entry_number }}</code></td>
+                                <td>
+                                    {% if entry.is_winner %}
+                                    <span class="badge bg-success">Winner</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No game entries</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

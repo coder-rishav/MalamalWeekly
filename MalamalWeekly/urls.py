@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('admin-panel/', include('custom_admin.urls')),  # Custom admin panel
     path('', include('games.urls')),
     path('accounts/', include('accounts.urls')),
     path('transactions/', include('transactions.urls')),
