@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Successful - Malamal Weekly{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-success shadow-lg">
+            <div class="card-body text-center py-5">
+                <!-- Success Icon -->
+                <div class="mb-4">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 100px;"></i>
+                </div>
+                
+                <!-- Success Message -->
+                <h2 class="text-success mb-3">Payment Successful!</h2>
+                <p class="lead mb-4">Your wallet has been credited successfully.</p>
+                
+                <!-- Transaction Details -->
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <strong>Transaction ID:</strong><br>
+                                <code>{{ transaction.reference_id }}</code>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <strong>Payment ID:</strong><br>
+                                <code>{{ transaction.payment_id }}</code>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>Amount:</strong><br>
+                                <span class="h5 text-primary">₹{{ amount }}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Gateway Fee:</strong><br>
+                                <span class="text-muted">₹{{ fee }}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Total Paid:</strong><br>
+                                <span class="h5 text-success">₹{{ total_amount }}</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <div>
+                            <strong>Payment Method:</strong><br>
+                            <span class="badge bg-primary">{{ transaction.payment_gateway.name }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Success Animation -->
+                <div class="alert alert-success">
+                    <i class="bi bi-wallet2"></i> ₹{{ amount }} has been added to your wallet!
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+                    <a href="{% url 'games:dashboard' %}" class="btn btn-success btn-lg">
+                        <i class="bi bi-house-door"></i> Go to Dashboard
+                    </a>
+                    <a href="{% url 'transactions:transaction_history' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-clock-history"></i> View Transactions
+                    </a>
+                </div>
+                
+                <!-- Additional Info -->
+                <div class="mt-4">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> You can use this balance to play games and participate in contests.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes successPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.bi-check-circle-fill {
+    animation: successPulse 1s ease-in-out;
+}
+</style>
+{% endblock %}
