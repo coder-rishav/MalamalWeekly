@@ -1,0 +1,173 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Create New Game - Admin Panel{% endblock %}
+{% block page_title %}Create New Game{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'custom_admin:games_management' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Games
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Create New Game</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <h6 class="border-bottom pb-2 mb-3">Basic Information</h6>
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Game Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               placeholder="e.g., Mega Lucky Draw" required>
+                        <small class="text-muted">Choose an attractive name for your game</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="game_type" class="form-label">Game Type *</label>
+                        <select class="form-select" id="game_type" name="game_type" required>
+                            <option value="">Select game type...</option>
+                            <option value="number_match">Number Match - Choose 5 numbers (0-99)</option>
+                            <option value="lucky_draw">Lucky Draw - Choose 1 number (1-100)</option>
+                            <option value="color_game">Color Prediction - Choose a color</option>
+                            <option value="custom">Custom Game</option>
+                        </select>
+                        <small class="text-muted">This defines how users play and win</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description *</label>
+                        <textarea class="form-control" id="description" name="description" 
+                                  rows="3" placeholder="Brief description of the game..." required></textarea>
+                        <small class="text-muted">This appears on the game card</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="rules" class="form-label">Game Rules *</label>
+                        <textarea class="form-control" id="rules" name="rules" 
+                                  rows="5" placeholder="Explain how to play and win..." required></textarea>
+                        <small class="text-muted">Clear instructions for users</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Game Image</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        <small class="text-muted">Upload an attractive image (recommended: 800x600px)</small>
+                    </div>
+                    
+                    <!-- Financial Settings -->
+                    <h6 class="border-bottom pb-2 mb-3 mt-4">Financial Settings</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="entry_fee" class="form-label">Entry Fee (₹) *</label>
+                            <input type="number" class="form-control" id="entry_fee" name="entry_fee" 
+                                   placeholder="50" step="0.01" min="0" required>
+                            <small class="text-muted">Cost to participate</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="winning_amount" class="form-label">Prize Amount (₹) *</label>
+                            <input type="number" class="form-control" id="winning_amount" name="winning_amount" 
+                                   placeholder="10000" step="0.01" min="0" required>
+                            <small class="text-muted">Winner's prize</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Participant Settings -->
+                    <h6 class="border-bottom pb-2 mb-3 mt-4">Participant Settings</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="min_participants" class="form-label">Minimum Participants *</label>
+                            <input type="number" class="form-control" id="min_participants" name="min_participants" 
+                                   value="2" min="1" required>
+                            <small class="text-muted">Required to start a round</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="max_participants" class="form-label">Maximum Participants *</label>
+                            <input type="number" class="form-control" id="max_participants" name="max_participants" 
+                                   value="1000" min="1" required>
+                            <small class="text-muted">Entry limit per round</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Settings -->
+                    <h6 class="border-bottom pb-2 mb-3 mt-4">Status & Visibility</h6>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Game Status *</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="active" selected>Active - Available for play</option>
+                            <option value="inactive">Inactive - Hidden from users</option>
+                            <option value="maintenance">Maintenance - Coming soon</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_featured" name="is_featured">
+                        <label class="form-check-label" for="is_featured">
+                            <strong>Featured Game</strong> - Show on homepage for better visibility
+                        </label>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-plus-circle"></i> Create Game
+                        </button>
+                        <a href="{% url 'custom_admin:games_management' %}" class="btn btn-secondary btn-lg">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Sidebar -->
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Game Type Guide</h6>
+            </div>
+            <div class="card-body">
+                <h6><i class="bi bi-1-circle"></i> Number Match</h6>
+                <p class="small">Users select 5 numbers (0-99). Win by matching all 5 in exact sequence.</p>
+                
+                <h6><i class="bi bi-2-circle"></i> Lucky Draw</h6>
+                <p class="small">Users pick 1 number (1-100). Win by matching the lucky number.</p>
+                
+                <h6><i class="bi bi-3-circle"></i> Color Prediction</h6>
+                <p class="small">Users choose a color (Red/Green/Blue/Yellow). Win by matching the winning color.</p>
+                
+                <h6><i class="bi bi-4-circle"></i> Custom Game</h6>
+                <p class="small">For future custom game types you'll develop.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Tips for Success</h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0 small">
+                    <li><strong>Attractive Names:</strong> Use exciting names like "Mega", "Super", "Lucky"</li>
+                    <li><strong>Fair Pricing:</strong> Balance entry fee vs prize for profitability</li>
+                    <li><strong>Clear Rules:</strong> Write simple, easy-to-understand instructions</li>
+                    <li><strong>Good Image:</strong> Use colorful, eye-catching images</li>
+                    <li><strong>Test First:</strong> Set to "Inactive" to test before launch</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
