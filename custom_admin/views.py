@@ -7,7 +7,7 @@ from django.utils import timezone
 from datetime import timedelta
 from accounts.models import UserProfile
 from games.models import Game, GameRound, UserEntry, Winner
-from transactions.models import Transaction, DepositRequest, WithdrawalRequest
+from transactions.models import Transaction, DepositRequest, WithdrawalRequest, PaymentGateway
 from django.contrib.auth.models import User
 
 
@@ -1001,3 +1001,197 @@ def review_appeal(request, appeal_id):
         'appeal': appeal,
     }
     return render(request, 'custom_admin/review_appeal.html', context)
+
+
+# ==================== PAYMENT GATEWAY MANAGEMENT ====================
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
+def payment_gateways_list(request):
+    """List all configured payment gateways"""
+    from transactions.models import PaymentGateway
+    
+    gateways = PaymentGateway.objects.all().order_by('display_order', 'name')
+    
+    # Count active gateways
+    active_count = gateways.filter(is_active=True).count()
+    test_mode_count = gateways.filter(mode='test').count()
+    live_mode_count = gateways.filter(mode='live').count()
+    
+    context = {
+        'gateways': gateways,
+        'active_count': active_count,
+        'test_mode_count': test_mode_count,
+        'live_mode_count': live_mode_count,
+    }
+    return render(request, 'custom_admin/payment_gateways_list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
+def add_payment_gateway(request):
+    """Add a new payment gateway"""
+    from transactions.models import PaymentGateway
+    
+    if request.method == 'POST':
+        try:
+            gateway = PaymentGateway.objects.create(
+                name=request.POST.get('name'),
+                provider=request.POST.get('provider'),
+                description=request.POST.get('description', ''),
+                is_active=request.POST.get('is_active') == 'on',
+                mode=request.POST.get('mode', 'test'),
+                display_order=int(request.POST.get('display_order', 0)),
+                
+                # Test credentials
+                test_api_key=request.POST.get('test_api_key', ''),
+                test_api_secret=request.POST.get('test_api_secret', ''),
+                test_merchant_id=request.POST.get('test_merchant_id', ''),
+                test_additional_config=request.POST.get('test_additional_config', ''),
+                
+                # Live credentials
+                live_api_key=request.POST.get('live_api_key', ''),
+                live_api_secret=request.POST.get('live_api_secret', ''),
+                live_merchant_id=request.POST.get('live_merchant_id', ''),
+                live_additional_config=request.POST.get('live_additional_config', ''),
+                
+                # Webhook
+                webhook_secret=request.POST.get('webhook_secret', ''),
+                webhook_url=request.POST.get('webhook_url', ''),
+                
+                # UI
+                logo_url=request.POST.get('logo_url', ''),
+                button_color=request.POST.get('button_color', '#007bff'),
+                
+                # Limits
+                min_amount=float(request.POST.get('min_amount', 10)),
+                max_amount=float(request.POST.get('max_amount', 100000)),
+                transaction_fee_percent=float(request.POST.get('transaction_fee_percent', 0)),
+                transaction_fee_fixed=float(request.POST.get('transaction_fee_fixed', 0)),
+                
+                # Metadata
+                created_by=request.user,
+                updated_by=request.user,
+            )
+            
+            messages.success(request, f'Payment gateway "{gateway.name}" added successfully!')
+            return redirect('custom_admin:payment_gateways_list')
+            
+        except Exception as e:
+            messages.error(request, f'Error adding gateway: {str(e)}')
+    
+    context = {
+        'providers': PaymentGateway.PROVIDER_CHOICES,
+        'modes': PaymentGateway.MODE_CHOICES,
+    }
+    return render(request, 'custom_admin/add_payment_gateway.html', context)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
+def edit_payment_gateway(request, gateway_id):
+    """Edit existing payment gateway"""
+    from transactions.models import PaymentGateway
+    
+    gateway = get_object_or_404(PaymentGateway, id=gateway_id)
+    
+    if request.method == 'POST':
+        try:
+            gateway.name = request.POST.get('name')
+            gateway.provider = request.POST.get('provider')
+            gateway.description = request.POST.get('description', '')
+            gateway.is_active = request.POST.get('is_active') == 'on'
+            gateway.mode = request.POST.get('mode', 'test')
+            gateway.display_order = int(request.POST.get('display_order', 0))
+            
+            # Test credentials
+            gateway.test_api_key = request.POST.get('test_api_key', '')
+            gateway.test_api_secret = request.POST.get('test_api_secret', '')
+            gateway.test_merchant_id = request.POST.get('test_merchant_id', '')
+            gateway.test_additional_config = request.POST.get('test_additional_config', '')
+            
+            # Live credentials
+            gateway.live_api_key = request.POST.get('live_api_key', '')
+            gateway.live_api_secret = request.POST.get('live_api_secret', '')
+            gateway.live_merchant_id = request.POST.get('live_merchant_id', '')
+            gateway.live_additional_config = request.POST.get('live_additional_config', '')
+            
+            # Webhook
+            gateway.webhook_secret = request.POST.get('webhook_secret', '')
+            gateway.webhook_url = request.POST.get('webhook_url', '')
+            
+            # UI
+            gateway.logo_url = request.POST.get('logo_url', '')
+            gateway.button_color = request.POST.get('button_color', '#007bff')
+            
+            # Limits
+            gateway.min_amount = float(request.POST.get('min_amount', 10))
+            gateway.max_amount = float(request.POST.get('max_amount', 100000))
+            gateway.transaction_fee_percent = float(request.POST.get('transaction_fee_percent', 0))
+            gateway.transaction_fee_fixed = float(request.POST.get('transaction_fee_fixed', 0))
+            
+            gateway.updated_by = request.user
+            gateway.save()
+            
+            messages.success(request, f'Payment gateway "{gateway.name}" updated successfully!')
+            return redirect('custom_admin:payment_gateways_list')
+            
+        except Exception as e:
+            messages.error(request, f'Error updating gateway: {str(e)}')
+    
+    context = {
+        'gateway': gateway,
+        'providers': PaymentGateway.PROVIDER_CHOICES,
+        'modes': PaymentGateway.MODE_CHOICES,
+    }
+    return render(request, 'custom_admin/edit_payment_gateway.html', context)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
+def toggle_gateway_status(request, gateway_id):
+    """Toggle gateway active status"""
+    from transactions.models import PaymentGateway
+    
+    gateway = get_object_or_404(PaymentGateway, id=gateway_id)
+    gateway.is_active = not gateway.is_active
+    gateway.updated_by = request.user
+    gateway.save()
+    
+    status = 'activated' if gateway.is_active else 'deactivated'
+    messages.success(request, f'Payment gateway "{gateway.name}" has been {status}.')
+    return redirect('custom_admin:payment_gateways_list')
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
+def toggle_gateway_mode(request, gateway_id):
+    """Toggle gateway between test and live mode"""
+    from transactions.models import PaymentGateway
+    
+    gateway = get_object_or_404(PaymentGateway, id=gateway_id)
+    gateway.mode = 'live' if gateway.mode == 'test' else 'test'
+    gateway.updated_by = request.user
+    gateway.save()
+    
+    messages.success(request, f'Payment gateway "{gateway.name}" switched to {gateway.get_mode_display()}.')
+    return redirect('custom_admin:payment_gateways_list')
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
+def delete_payment_gateway(request, gateway_id):
+    """Delete a payment gateway"""
+    from transactions.models import PaymentGateway
+    
+    gateway = get_object_or_404(PaymentGateway, id=gateway_id)
+    
+    # Check if gateway has transactions
+    if gateway.transactions.exists():
+        messages.error(request, f'Cannot delete "{gateway.name}" as it has associated transactions.')
+        return redirect('custom_admin:payment_gateways_list')
+    
+    gateway_name = gateway.name
+    gateway.delete()
+    messages.success(request, f'Payment gateway "{gateway_name}" deleted successfully.')
+    return redirect('custom_admin:payment_gateways_list')

@@ -1,0 +1,171 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Payment Gateways - Admin Panel{% endblock %}
+{% block page_title %}Payment Gateway Management{% endblock %}
+
+{% block content %}
+<!-- Header with Add Button -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Configure payment providers and manage API credentials</p>
+    </div>
+    <a href="{% url 'custom_admin:add_payment_gateway' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Add New Gateway
+    </a>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body">
+                <h6 class="text-muted">Active Gateways</h6>
+                <h2 class="text-success">{{ active_count }}</h2>
+                <small><i class="bi bi-check-circle"></i> Enabled for users</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h6 class="text-muted">Test Mode</h6>
+                <h2 class="text-warning">{{ test_mode_count }}</h2>
+                <small><i class="bi bi-exclamation-triangle"></i> Using test credentials</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h6 class="text-muted">Live Mode</h6>
+                <h2 class="text-primary">{{ live_mode_count }}</h2>
+                <small><i class="bi bi-globe"></i> Production ready</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gateways List -->
+<div class="card">
+    <div class="card-body">
+        {% if gateways %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Order</th>
+                        <th>Gateway Name</th>
+                        <th>Provider</th>
+                        <th>Mode</th>
+                        <th>Status</th>
+                        <th>Limits</th>
+                        <th>Fees</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gateway in gateways %}
+                    <tr>
+                        <td><span class="badge bg-secondary">{{ gateway.display_order }}</span></td>
+                        <td>
+                            <strong>{{ gateway.name }}</strong>
+                            {% if gateway.logo_url %}
+                            <br><img src="{{ gateway.logo_url }}" alt="{{ gateway.name }}" style="max-height: 20px;">
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge" style="background-color: {{ gateway.button_color }};">
+                                {{ gateway.get_provider_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if gateway.mode == 'test' %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-bug"></i> Test
+                            </span>
+                            {% else %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-circle"></i> Live
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if gateway.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>
+                                Min: ₹{{ gateway.min_amount }}<br>
+                                Max: ₹{{ gateway.max_amount }}
+                            </small>
+                        </td>
+                        <td>
+                            <small>
+                                {% if gateway.transaction_fee_percent > 0 %}
+                                {{ gateway.transaction_fee_percent }}%
+                                {% endif %}
+                                {% if gateway.transaction_fee_fixed > 0 %}
+                                + ₹{{ gateway.transaction_fee_fixed }}
+                                {% endif %}
+                                {% if gateway.transaction_fee_percent == 0 and gateway.transaction_fee_fixed == 0 %}
+                                No fees
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'custom_admin:edit_payment_gateway' gateway.id %}" 
+                                   class="btn btn-primary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'custom_admin:toggle_gateway_status' gateway.id %}" 
+                                   class="btn btn-{{ gateway.is_active|yesno:'secondary,success' }}" 
+                                   title="{{ gateway.is_active|yesno:'Deactivate,Activate' }}"
+                                   onclick="return confirm('Are you sure?')">
+                                    <i class="bi bi-power"></i>
+                                </a>
+                                <a href="{% url 'custom_admin:toggle_gateway_mode' gateway.id %}" 
+                                   class="btn btn-warning" 
+                                   title="Switch to {{ gateway.mode|yesno:'Live,Test' }} Mode"
+                                   onclick="return confirm('Switch to {{ gateway.mode|yesno:'Live,Test' }} mode?')">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </a>
+                                <a href="{% url 'custom_admin:delete_payment_gateway' gateway.id %}" 
+                                   class="btn btn-danger" title="Delete"
+                                   onclick="return confirm('Delete this gateway? This cannot be undone.')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-credit-card-2-front" style="font-size: 4rem; color: #ccc;"></i>
+            <p class="text-muted mt-3">No payment gateways configured yet</p>
+            <a href="{% url 'custom_admin:add_payment_gateway' %}" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-circle"></i> Add Your First Gateway
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Information Box -->
+<div class="alert alert-info mt-4">
+    <h6><i class="bi bi-info-circle"></i> Payment Gateway Management Tips:</h6>
+    <ul class="mb-0">
+        <li><strong>Test Mode:</strong> Use test credentials for development and testing. No real money is processed.</li>
+        <li><strong>Live Mode:</strong> Switch to live credentials when ready for production. Real transactions will be processed.</li>
+        <li><strong>Display Order:</strong> Lower numbers appear first to users when selecting payment method.</li>
+        <li><strong>Fees:</strong> Configure gateway fees to cover processing costs or keep at 0 to absorb fees yourself.</li>
+        <li><strong>Security:</strong> Never share API keys. Keep test and live credentials separate.</li>
+    </ul>
+</div>
+{% endblock %}

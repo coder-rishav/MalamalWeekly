@@ -89,6 +89,9 @@
                         <a class="nav-link {% if 'transaction' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:transactions_list' %}">
                             <i class="bi bi-receipt"></i> Transactions
                         </a>
+                        <a class="nav-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:payment_gateways_list' %}">
+                            <i class="bi bi-credit-card"></i> Payment Gateways
+                        </a>
                         <hr style="border-color: rgba(255,255,255,0.2);">
                         <a class="nav-link" href="{% url 'games:home' %}" target="_blank">
                             <i class="bi bi-box-arrow-up-right"></i> View Site

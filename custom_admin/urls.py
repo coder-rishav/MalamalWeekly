@@ -41,4 +41,12 @@ urlpatterns = [
     # Ban Appeals
     path('appeals/', views.ban_appeals_list, name='ban_appeals_list'),
     path('appeals/<int:appeal_id>/review/', views.review_appeal, name='review_appeal'),
+    
+    # Payment Gateways
+    path('payment-gateways/', views.payment_gateways_list, name='payment_gateways_list'),
+    path('payment-gateways/add/', views.add_payment_gateway, name='add_payment_gateway'),
+    path('payment-gateways/<int:gateway_id>/edit/', views.edit_payment_gateway, name='edit_payment_gateway'),
+    path('payment-gateways/<int:gateway_id>/toggle-status/', views.toggle_gateway_status, name='toggle_gateway_status'),
+    path('payment-gateways/<int:gateway_id>/toggle-mode/', views.toggle_gateway_mode, name='toggle_gateway_mode'),
+    path('payment-gateways/<int:gateway_id>/delete/', views.delete_payment_gateway, name='delete_payment_gateway'),
 ]

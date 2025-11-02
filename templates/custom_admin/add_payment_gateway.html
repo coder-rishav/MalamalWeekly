@@ -1,0 +1,212 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Add Payment Gateway - Admin Panel{% endblock %}
+{% block page_title %}Add New Payment Gateway{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-info-circle"></i> Basic Information</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label"><strong>Gateway Name *</strong></label>
+                            <input type="text" class="form-control" id="name" name="name" required 
+                                   placeholder="e.g., Razorpay Main Account">
+                            <small class="text-muted">Display name shown to users</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="provider" class="form-label"><strong>Provider *</strong></label>
+                            <select class="form-select" id="provider" name="provider" required>
+                                <option value="">-- Select Provider --</option>
+                                {% for value, label in providers %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label"><strong>Description</strong></label>
+                        <textarea class="form-control" id="description" name="description" rows="2" 
+                                  placeholder="Internal notes (not shown to users)"></textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="display_order" class="form-label"><strong>Display Order</strong></label>
+                            <input type="number" class="form-control" id="display_order" name="display_order" value="0" min="0">
+                            <small class="text-muted">Lower numbers appear first</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="mode" class="form-label"><strong>Mode *</strong></label>
+                            <select class="form-select" id="mode" name="mode" required>
+                                {% for value, label in modes %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active">
+                                <label class="form-check-label" for="is_active">
+                                    <strong>Active (Enable for users)</strong>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <!-- Test Mode Credentials -->
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-bug"></i> Test Mode Credentials
+                        <span class="badge bg-warning text-dark">For Development</span>
+                    </h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="test_api_key" class="form-label"><strong>Test API Key</strong></label>
+                            <input type="text" class="form-control" id="test_api_key" name="test_api_key" 
+                                   placeholder="rzp_test_...">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="test_api_secret" class="form-label"><strong>Test API Secret</strong></label>
+                            <input type="password" class="form-control" id="test_api_secret" name="test_api_secret" 
+                                   placeholder="Enter test secret key">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="test_merchant_id" class="form-label"><strong>Test Merchant ID</strong></label>
+                            <input type="text" class="form-control" id="test_merchant_id" name="test_merchant_id" 
+                                   placeholder="If required by provider">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="test_additional_config" class="form-label"><strong>Additional Config (JSON)</strong></label>
+                            <textarea class="form-control" id="test_additional_config" name="test_additional_config" rows="2"
+                                      placeholder='{"key": "value"}'></textarea>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <!-- Live Mode Credentials -->
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-globe"></i> Live Mode Credentials
+                        <span class="badge bg-success">For Production</span>
+                    </h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="live_api_key" class="form-label"><strong>Live API Key</strong></label>
+                            <input type="text" class="form-control" id="live_api_key" name="live_api_key" 
+                                   placeholder="rzp_live_...">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="live_api_secret" class="form-label"><strong>Live API Secret</strong></label>
+                            <input type="password" class="form-control" id="live_api_secret" name="live_api_secret" 
+                                   placeholder="Enter live secret key">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="live_merchant_id" class="form-label"><strong>Live Merchant ID</strong></label>
+                            <input type="text" class="form-control" id="live_merchant_id" name="live_merchant_id" 
+                                   placeholder="If required by provider">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="live_additional_config" class="form-label"><strong>Additional Config (JSON)</strong></label>
+                            <textarea class="form-control" id="live_additional_config" name="live_additional_config" rows="2"
+                                      placeholder='{"key": "value"}'></textarea>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <!-- Webhook Configuration -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-link-45deg"></i> Webhook Configuration</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="webhook_url" class="form-label"><strong>Webhook URL</strong></label>
+                            <input type="url" class="form-control" id="webhook_url" name="webhook_url" 
+                                   placeholder="https://yourdomain.com/webhooks/payment">
+                            <small class="text-muted">Configure this in your gateway dashboard</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="webhook_secret" class="form-label"><strong>Webhook Secret</strong></label>
+                            <input type="password" class="form-control" id="webhook_secret" name="webhook_secret" 
+                                   placeholder="Webhook signing secret">
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <!-- UI Customization -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-palette"></i> UI Customization</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="logo_url" class="form-label"><strong>Logo URL</strong></label>
+                            <input type="url" class="form-control" id="logo_url" name="logo_url" 
+                                   placeholder="https://example.com/logo.png">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="button_color" class="form-label"><strong>Button Color</strong></label>
+                            <input type="color" class="form-control form-control-color" id="button_color" 
+                                   name="button_color" value="#007bff">
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <!-- Limits and Fees -->
+                    <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-cash-stack"></i> Limits and Fees</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label for="min_amount" class="form-label"><strong>Min Amount (₹)</strong></label>
+                            <input type="number" class="form-control" id="min_amount" name="min_amount" 
+                                   value="10" min="1" step="0.01" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="max_amount" class="form-label"><strong>Max Amount (₹)</strong></label>
+                            <input type="number" class="form-control" id="max_amount" name="max_amount" 
+                                   value="100000" min="1" step="0.01" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="transaction_fee_percent" class="form-label"><strong>Fee (%)</strong></label>
+                            <input type="number" class="form-control" id="transaction_fee_percent" 
+                                   name="transaction_fee_percent" value="0" min="0" max="100" step="0.01">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="transaction_fee_fixed" class="form-label"><strong>Fixed Fee (₹)</strong></label>
+                            <input type="number" class="form-control" id="transaction_fee_fixed" 
+                                   name="transaction_fee_fixed" value="0" min="0" step="0.01">
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <!-- Form Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'custom_admin:payment_gateways_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Add Payment Gateway
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-label strong {
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
