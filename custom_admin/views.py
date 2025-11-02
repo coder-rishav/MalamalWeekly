@@ -354,6 +354,45 @@ def create_game(request):
         game.is_featured = request.POST.get('is_featured') == 'on'
         game.created_by = request.user
         
+        # Build game_config based on game type
+        game_config = {}
+        
+        if game.game_type == 'custom':
+            # For custom games, build config from form inputs
+            input_type = request.POST.get('input_type')
+            
+            if input_type == 'number':
+                game_config = {
+                    'input_type': 'number',
+                    'number_count': int(request.POST.get('number_count', 1)),
+                    'min_value': int(request.POST.get('min_value', 1)),
+                    'max_value': int(request.POST.get('max_value', 100)),
+                    'allow_duplicates': request.POST.get('allow_duplicates') == 'on',
+                }
+            elif input_type == 'choice':
+                # Parse choices from textarea (one per line)
+                choices_text = request.POST.get('choices', '')
+                choices = [c.strip() for c in choices_text.split('\n') if c.strip()]
+                game_config = {
+                    'input_type': 'choice',
+                    'choices': choices,
+                    'multiple_selection': request.POST.get('multiple_selection') == 'on',
+                    'selection_count': int(request.POST.get('selection_count', 1)) if request.POST.get('multiple_selection') == 'on' else 1,
+                }
+            elif input_type == 'text':
+                game_config = {
+                    'input_type': 'text',
+                    'min_length': int(request.POST.get('min_length', 1)),
+                    'max_length': int(request.POST.get('max_length', 100)),
+                    'case_sensitive': request.POST.get('case_sensitive') == 'on',
+                }
+            
+            # Winning logic
+            game_config['winning_logic'] = request.POST.get('winning_logic', 'exact_match')
+            game_config['partial_match_points'] = int(request.POST.get('partial_match_points', 0))
+        
+        game.game_config = game_config
+        
         # Handle image upload
         if 'image' in request.FILES:
             game.image = request.FILES['image']
@@ -536,6 +575,74 @@ def select_winner(request, round_id):
                 for entry in entries:
                     if entry.user_choice == winning_combination:
                         winners.append(entry)
+            
+            elif game.game_type == 'custom':
+                # Handle custom game types
+                config = game.game_config
+                winning_logic = config.get('winning_logic', 'exact_match')
+                
+                if config.get('input_type') == 'number':
+                    # Generate random numbers
+                    number_count = config.get('number_count', 1)
+                    min_val = config.get('min_value', 1)
+                    max_val = config.get('max_value', 100)
+                    
+                    winning_combination = [random.randint(min_val, max_val) for _ in range(number_count)]
+                    
+                    if winning_logic == 'exact_match':
+                        for entry in entries:
+                            if entry.user_choice == winning_combination:
+                                winners.append(entry)
+                    elif winning_logic == 'partial_match':
+                        # Score based on partial matches
+                        entry_scores = []
+                        for entry in entries:
+                            score = sum(1 for i, num in enumerate(entry.user_choice) if i < len(winning_combination) and num == winning_combination[i])
+                            entry_scores.append((entry, score))
+                        # Get highest score
+                        if entry_scores:
+                            max_score = max(s[1] for s in entry_scores)
+                            winners = [e[0] for e in entry_scores if e[1] == max_score and e[1] > 0]
+                    elif winning_logic == 'closest':
+                        # Find closest to winning number
+                        if number_count == 1:
+                            entry_distances = []
+                            for entry in entries:
+                                distance = abs(entry.user_choice[0] - winning_combination[0])
+                                entry_distances.append((entry, distance))
+                            min_distance = min(d[1] for d in entry_distances)
+                            winners = [e[0] for e in entry_distances if e[1] == min_distance]
+                    elif winning_logic == 'random':
+                        # Pick random winner(s)
+                        winners = [random.choice(list(entries))]
+                
+                elif config.get('input_type') == 'choice':
+                    # Pick random choice(s)
+                    choices = config.get('choices', [])
+                    if config.get('multiple_selection', False):
+                        selection_count = config.get('selection_count', 1)
+                        winning_combination = random.sample(choices, min(selection_count, len(choices)))
+                    else:
+                        winning_combination = [random.choice(choices)]
+                    
+                    if winning_logic == 'exact_match':
+                        for entry in entries:
+                            if sorted(entry.user_choice) == sorted(winning_combination):
+                                winners.append(entry)
+                    elif winning_logic == 'random':
+                        winners = [random.choice(list(entries))]
+                
+                elif config.get('input_type') == 'text':
+                    # Generate random text or pick from entries
+                    if winning_logic == 'random':
+                        # Pick random winner
+                        winners = [random.choice(list(entries))]
+                        winning_combination = winners[0].user_choice
+                    else:
+                        # For text games, admin should set a winning answer manually
+                        # For now, just pick random
+                        winners = [random.choice(list(entries))]
+                        winning_combination = winners[0].user_choice
             
             # Save winning combination
             game_round.winning_combination = winning_combination

@@ -114,6 +114,48 @@
                         <option value="blue">🔵 Blue</option>
                         <option value="yellow">🟡 Yellow</option>
                     </select>
+                    
+                    {% elif game.game_type == 'custom' %}
+                    <h6 class="mb-3">{{ game.name }}</h6>
+                    
+                    {% if game.game_config.input_type == 'number' %}
+                        {% for i in "0123456789"|slice:":"|slice:game.game_config.number_count %}
+                        <div class="mb-2">
+                            <input type="number" name="custom_number_{{ forloop.counter }}" class="form-control" 
+                                   placeholder="Number {{ forloop.counter }}" 
+                                   min="{{ game.game_config.min_value }}" 
+                                   max="{{ game.game_config.max_value }}" required>
+                        </div>
+                        {% endfor %}
+                        <small class="text-muted">Enter {{ game.game_config.number_count }} number(s) between {{ game.game_config.min_value }} and {{ game.game_config.max_value }}</small>
+                    
+                    {% elif game.game_config.input_type == 'choice' %}
+                        {% if game.game_config.multiple_selection %}
+                        <p class="small">Select {{ game.game_config.selection_count }} option(s):</p>
+                        {% for choice in game.game_config.choices %}
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="custom_choice" value="{{ choice }}" id="choice_{{ forloop.counter }}">
+                            <label class="form-check-label" for="choice_{{ forloop.counter }}">
+                                {{ choice }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <select name="custom_choice" class="form-control" required>
+                            <option value="">Select your choice...</option>
+                            {% for choice in game.game_config.choices %}
+                            <option value="{{ choice }}">{{ choice }}</option>
+                            {% endfor %}
+                        </select>
+                        {% endif %}
+                    
+                    {% elif game.game_config.input_type == 'text' %}
+                        <textarea name="custom_text" class="form-control" rows="3" 
+                                  placeholder="Enter your answer..." 
+                                  minlength="{{ game.game_config.min_length }}" 
+                                  maxlength="{{ game.game_config.max_length }}" required></textarea>
+                        <small class="text-muted">Between {{ game.game_config.min_length }} and {{ game.game_config.max_length }} characters</small>
+                    {% endif %}
                     {% endif %}
                     
                     <div class="alert alert-info mt-3">

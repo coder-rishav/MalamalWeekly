@@ -32,14 +32,115 @@
                     
                     <div class="mb-3">
                         <label for="game_type" class="form-label">Game Type *</label>
-                        <select class="form-select" id="game_type" name="game_type" required>
+                        <select class="form-select" id="game_type" name="game_type" required onchange="toggleCustomRules()">
                             <option value="">Select game type...</option>
                             <option value="number_match">Number Match - Choose 5 numbers (0-99)</option>
                             <option value="lucky_draw">Lucky Draw - Choose 1 number (1-100)</option>
                             <option value="color_game">Color Prediction - Choose a color</option>
-                            <option value="custom">Custom Game</option>
+                            <option value="custom">🎮 Custom Game (Define Your Own Rules)</option>
                         </select>
                         <small class="text-muted">This defines how users play and win</small>
+                    </div>
+                    
+                    <!-- Custom Game Rules Builder (Hidden by default) -->
+                    <div id="custom_rules_section" style="display: none;" class="border rounded p-3 mb-3 bg-light">
+                        <h6 class="text-primary"><i class="bi bi-gear-fill"></i> Custom Game Configuration</h6>
+                        <p class="small text-muted">Define how users will play your custom game</p>
+                        
+                        <div class="mb-3">
+                            <label for="input_type" class="form-label">Input Type *</label>
+                            <select class="form-select" id="input_type" name="input_type" onchange="toggleInputOptions()">
+                                <option value="">Select input type...</option>
+                                <option value="number">Number Selection</option>
+                                <option value="choice">Multiple Choice</option>
+                                <option value="text">Text Answer</option>
+                            </select>
+                            <small class="text-muted">How will users submit their entry?</small>
+                        </div>
+                        
+                        <!-- Number Input Options -->
+                        <div id="number_options" style="display: none;" class="border-start border-3 border-primary ps-3 mb-3">
+                            <h6 class="small fw-bold">Number Configuration</h6>
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <label for="number_count" class="form-label small">How Many Numbers?</label>
+                                    <input type="number" class="form-control form-control-sm" id="number_count" name="number_count" value="1" min="1" max="10">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label for="min_value" class="form-label small">Min Value</label>
+                                    <input type="number" class="form-control form-control-sm" id="min_value" name="min_value" value="1">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label for="max_value" class="form-label small">Max Value</label>
+                                    <input type="number" class="form-control form-control-sm" id="max_value" name="max_value" value="100">
+                                </div>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="allow_duplicates" name="allow_duplicates">
+                                <label class="form-check-label small" for="allow_duplicates">
+                                    Allow duplicate numbers
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Choice Input Options -->
+                        <div id="choice_options" style="display: none;" class="border-start border-3 border-success ps-3 mb-3">
+                            <h6 class="small fw-bold">Multiple Choice Configuration</h6>
+                            <div class="mb-2">
+                                <label for="choices" class="form-label small">Choices (one per line)</label>
+                                <textarea class="form-control form-control-sm" id="choices" name="choices" rows="4" 
+                                          placeholder="Red&#10;Blue&#10;Green&#10;Yellow"></textarea>
+                                <small class="text-muted">Enter each option on a new line</small>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" class="form-check-input" id="multiple_selection" name="multiple_selection" onchange="toggleSelectionCount()">
+                                <label class="form-check-label small" for="multiple_selection">
+                                    Allow multiple selections
+                                </label>
+                            </div>
+                            <div id="selection_count_div" style="display: none;">
+                                <label for="selection_count" class="form-label small">Number of Selections</label>
+                                <input type="number" class="form-control form-control-sm" id="selection_count" name="selection_count" value="1" min="1">
+                            </div>
+                        </div>
+                        
+                        <!-- Text Input Options -->
+                        <div id="text_options" style="display: none;" class="border-start border-3 border-warning ps-3 mb-3">
+                            <h6 class="small fw-bold">Text Answer Configuration</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label for="min_length" class="form-label small">Min Length</label>
+                                    <input type="number" class="form-control form-control-sm" id="min_length" name="min_length" value="1" min="1">
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label for="max_length" class="form-label small">Max Length</label>
+                                    <input type="number" class="form-control form-control-sm" id="max_length" name="max_length" value="100" min="1">
+                                </div>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="case_sensitive" name="case_sensitive">
+                                <label class="form-check-label small" for="case_sensitive">
+                                    Case sensitive matching
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Winning Logic -->
+                        <div class="mb-3">
+                            <label for="winning_logic" class="form-label">Winning Logic *</label>
+                            <select class="form-select" id="winning_logic" name="winning_logic">
+                                <option value="exact_match">Exact Match - Must match completely</option>
+                                <option value="partial_match">Partial Match - Points for partial matches</option>
+                                <option value="closest">Closest Match - Nearest wins</option>
+                                <option value="random">Random - One random winner</option>
+                            </select>
+                        </div>
+                        
+                        <div id="partial_match_div" style="display: none;" class="mb-3">
+                            <label for="partial_match_points" class="form-label small">Points per Partial Match</label>
+                            <input type="number" class="form-control" id="partial_match_points" name="partial_match_points" value="0" min="0">
+                            <small class="text-muted">For partial match scoring (e.g., 1 point per correct number)</small>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
@@ -165,9 +266,67 @@
                     <li><strong>Clear Rules:</strong> Write simple, easy-to-understand instructions</li>
                     <li><strong>Good Image:</strong> Use colorful, eye-catching images</li>
                     <li><strong>Test First:</strong> Set to "Inactive" to test before launch</li>
+                    <li><strong>Custom Games:</strong> Define clear winning logic for fairness</li>
                 </ul>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function toggleCustomRules() {
+    const gameType = document.getElementById('game_type').value;
+    const customSection = document.getElementById('custom_rules_section');
+    
+    if (gameType === 'custom') {
+        customSection.style.display = 'block';
+    } else {
+        customSection.style.display = 'none';
+    }
+}
+
+function toggleInputOptions() {
+    const inputType = document.getElementById('input_type').value;
+    
+    // Hide all options first
+    document.getElementById('number_options').style.display = 'none';
+    document.getElementById('choice_options').style.display = 'none';
+    document.getElementById('text_options').style.display = 'none';
+    
+    // Show selected option
+    if (inputType === 'number') {
+        document.getElementById('number_options').style.display = 'block';
+    } else if (inputType === 'choice') {
+        document.getElementById('choice_options').style.display = 'block';
+    } else if (inputType === 'text') {
+        document.getElementById('text_options').style.display = 'block';
+    }
+}
+
+function toggleSelectionCount() {
+    const multipleSelection = document.getElementById('multiple_selection').checked;
+    const selectionCountDiv = document.getElementById('selection_count_div');
+    
+    if (multipleSelection) {
+        selectionCountDiv.style.display = 'block';
+    } else {
+        selectionCountDiv.style.display = 'none';
+    }
+}
+
+// Show partial match options when partial_match winning logic is selected
+document.addEventListener('DOMContentLoaded', function() {
+    const winningLogic = document.getElementById('winning_logic');
+    if (winningLogic) {
+        winningLogic.addEventListener('change', function() {
+            const partialMatchDiv = document.getElementById('partial_match_div');
+            if (this.value === 'partial_match') {
+                partialMatchDiv.style.display = 'block';
+            } else {
+                partialMatchDiv.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

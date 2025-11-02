@@ -137,6 +137,61 @@ def play_game(request, game_id, round_id):
                 if user_choice[0] not in valid_colors:
                     raise ValueError("Invalid color selection")
             
+            elif game.game_type == 'custom':
+                # Handle custom game inputs
+                config = game.game_config
+                user_choice = []
+                
+                if config.get('input_type') == 'number':
+                    number_count = config.get('number_count', 1)
+                    min_val = config.get('min_value', 1)
+                    max_val = config.get('max_value', 100)
+                    
+                    for i in range(1, number_count + 1):
+                        num = int(request.POST.get(f'custom_number_{i}', 0))
+                        if num < min_val or num > max_val:
+                            raise ValueError(f"Number must be between {min_val} and {max_val}")
+                        user_choice.append(num)
+                    
+                    # Check duplicates if not allowed
+                    if not config.get('allow_duplicates', False) and len(user_choice) != len(set(user_choice)):
+                        raise ValueError("Duplicate numbers not allowed")
+                
+                elif config.get('input_type') == 'choice':
+                    if config.get('multiple_selection', False):
+                        # Multiple checkboxes
+                        user_choice = request.POST.getlist('custom_choice')
+                        selection_count = config.get('selection_count', 1)
+                        if len(user_choice) != selection_count:
+                            raise ValueError(f"Must select exactly {selection_count} option(s)")
+                        # Validate choices
+                        valid_choices = config.get('choices', [])
+                        if not all(c in valid_choices for c in user_choice):
+                            raise ValueError("Invalid choice selection")
+                    else:
+                        # Single select
+                        choice = request.POST.get('custom_choice', '')
+                        valid_choices = config.get('choices', [])
+                        if choice not in valid_choices:
+                            raise ValueError("Invalid choice selection")
+                        user_choice = [choice]
+                
+                elif config.get('input_type') == 'text':
+                    text = request.POST.get('custom_text', '').strip()
+                    min_len = config.get('min_length', 1)
+                    max_len = config.get('max_length', 100)
+                    
+                    if len(text) < min_len or len(text) > max_len:
+                        raise ValueError(f"Text must be between {min_len} and {max_len} characters")
+                    
+                    if not config.get('case_sensitive', False):
+                        text = text.lower()
+                    
+                    user_choice = [text]
+                
+                else:
+                    raise ValueError("Invalid custom game configuration")
+            
             else:
                 raise ValueError("Invalid game type")
         
