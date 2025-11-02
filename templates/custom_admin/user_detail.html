@@ -8,6 +8,9 @@
     <a href="{% url 'custom_admin:users_list' %}" class="btn btn-secondary">
         <i class="bi bi-arrow-left"></i> Back to Users
     </a>
+    <a href="{% url 'custom_admin:manage_user_permissions' user_obj.id %}" class="btn btn-warning">
+        <i class="bi bi-shield-lock"></i> Manage Permissions & Ban
+    </a>
 </div>
 
 <div class="row">

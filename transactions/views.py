@@ -19,6 +19,16 @@ def transaction_history(request):
 @login_required
 def add_credits(request):
     """Request to add credits"""
+    # Check if user has permission to deposit
+    profile = request.user.profile
+    if not profile.can_deposit:
+        messages.error(request, 'You do not have permission to make deposits. Contact admin for more information.')
+        return redirect('games:dashboard')
+    
+    if profile.is_blocked:
+        messages.error(request, f'Your account has been banned. Reason: {profile.blocked_reason}')
+        return redirect('games:dashboard')
+    
     if request.method == 'POST':
         amount = request.POST.get('amount')
         payment_method = request.POST.get('payment_method')
@@ -49,6 +59,19 @@ def add_credits(request):
 @login_required
 def withdraw_credits(request):
     """Request to withdraw credits"""
+    # Ensure user has a profile (create if missing)
+    from accounts.models import UserProfile
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    # Check if user has permission to withdraw
+    if not profile.can_withdraw:
+        messages.error(request, 'You do not have permission to withdraw funds. Contact admin for more information.')
+        return redirect('games:dashboard')
+    
+    if profile.is_blocked:
+        messages.error(request, f'Your account has been banned. Reason: {profile.blocked_reason}')
+        return redirect('games:dashboard')
+    
     if request.method == 'POST':
         amount = request.POST.get('amount')
         bank_name = request.POST.get('bank_name')
@@ -60,10 +83,6 @@ def withdraw_credits(request):
             amount = float(amount)
             if amount <= 0:
                 raise ValueError("Amount must be positive")
-            
-            # Ensure user has a profile (create if missing)
-            from accounts.models import UserProfile
-            profile, created = UserProfile.objects.get_or_create(user=request.user)
             
             # Check if user has sufficient balance
             if profile.wallet_balance < amount:

@@ -152,6 +152,117 @@ def user_detail(request, user_id):
 
 @login_required
 @user_passes_test(is_admin, login_url='/admin-panel/login/')
+def manage_user_permissions(request, user_id):
+    """Manage user permissions and restrictions"""
+    user = get_object_or_404(User, id=user_id)
+    profile = user.profile
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'update_permissions':
+            # Update all permissions
+            profile.can_play_games = request.POST.get('can_play_games') == 'on'
+            profile.can_deposit = request.POST.get('can_deposit') == 'on'
+            profile.can_withdraw = request.POST.get('can_withdraw') == 'on'
+            profile.can_view_games = request.POST.get('can_view_games') == 'on'
+            profile.can_view_leaderboard = request.POST.get('can_view_leaderboard') == 'on'
+            profile.can_view_transaction_history = request.POST.get('can_view_transaction_history') == 'on'
+            profile.can_edit_profile = request.POST.get('can_edit_profile') == 'on'
+            
+            profile.restriction_notes = request.POST.get('restriction_notes', '')
+            profile.last_permission_change = timezone.now()
+            profile.permission_changed_by = request.user
+            profile.save()
+            
+            messages.success(request, f'Permissions updated successfully for {user.username}!')
+            return redirect('custom_admin:manage_user_permissions', user_id=user_id)
+        
+        elif action == 'ban_user':
+            profile.is_blocked = True
+            profile.blocked_reason = request.POST.get('blocked_reason', 'Banned by admin')
+            profile.blocked_at = timezone.now()
+            profile.blocked_by = request.user
+            
+            # Disable all permissions when banned
+            profile.can_play_games = False
+            profile.can_deposit = False
+            profile.can_withdraw = False
+            profile.can_view_games = False
+            
+            profile.last_permission_change = timezone.now()
+            profile.permission_changed_by = request.user
+            profile.save()
+            
+            messages.success(request, f'User {user.username} has been banned!')
+            return redirect('custom_admin:manage_user_permissions', user_id=user_id)
+        
+        elif action == 'unban_user':
+            profile.is_blocked = False
+            profile.blocked_reason = None
+            profile.blocked_at = None
+            profile.blocked_by = None
+            
+            # Restore default permissions
+            profile.can_play_games = True
+            profile.can_deposit = True
+            profile.can_withdraw = True
+            profile.can_view_games = True
+            profile.can_view_leaderboard = True
+            profile.can_view_transaction_history = True
+            profile.can_edit_profile = True
+            
+            profile.last_permission_change = timezone.now()
+            profile.permission_changed_by = request.user
+            profile.save()
+            
+            messages.success(request, f'User {user.username} has been unbanned!')
+            return redirect('custom_admin:manage_user_permissions', user_id=user_id)
+        
+        elif action == 'quick_restrict':
+            restriction_type = request.POST.get('restriction_type')
+            
+            if restriction_type == 'no_games':
+                profile.can_play_games = False
+                profile.restriction_notes = 'Games restricted by admin'
+                messages.success(request, f'Game access restricted for {user.username}')
+            elif restriction_type == 'no_withdraw':
+                profile.can_withdraw = False
+                profile.restriction_notes = 'Withdrawals restricted by admin'
+                messages.success(request, f'Withdrawal access restricted for {user.username}')
+            elif restriction_type == 'no_deposit':
+                profile.can_deposit = False
+                profile.restriction_notes = 'Deposits restricted by admin'
+                messages.success(request, f'Deposit access restricted for {user.username}')
+            elif restriction_type == 'view_only':
+                profile.can_play_games = False
+                profile.can_deposit = False
+                profile.can_withdraw = False
+                profile.can_edit_profile = False
+                profile.restriction_notes = 'View-only mode'
+                messages.success(request, f'{user.username} set to view-only mode')
+            
+            profile.last_permission_change = timezone.now()
+            profile.permission_changed_by = request.user
+            profile.save()
+            
+            return redirect('custom_admin:manage_user_permissions', user_id=user_id)
+    
+    # Get permission change history (last 10 changes)
+    permission_history = UserProfile.objects.filter(
+        user=user
+    ).values('last_permission_change', 'permission_changed_by__username', 'restriction_notes').order_by('-last_permission_change')[:10]
+    
+    context = {
+        'user_obj': user,
+        'profile': profile,
+        'permission_history': permission_history,
+    }
+    return render(request, 'custom_admin/manage_user_permissions.html', context)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/admin-panel/login/')
 def deposit_requests(request):
     """Manage deposit requests"""
     status_filter = request.GET.get('status', 'pending')

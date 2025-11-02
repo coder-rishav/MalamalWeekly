@@ -8,6 +8,7 @@ class UserProfileInline(admin.StackedInline):
     model = UserProfile
     can_delete = False
     verbose_name_plural = 'Profile'
+    fk_name = 'user'  # Specify which foreign key to use
     fields = (
         ('phone_number', 'date_of_birth'),
         'address',

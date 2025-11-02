@@ -1,0 +1,295 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Manage User Permissions - {{ user_obj.username }} - Admin Panel{% endblock %}
+{% block page_title %}Manage User: {{ user_obj.username }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'custom_admin:user_detail' user_obj.id %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to User Details
+    </a>
+    <a href="{% url 'custom_admin:users_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-people"></i> All Users
+    </a>
+</div>
+
+<!-- User Status Overview -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card {% if profile.is_blocked %}border-danger{% endif %}">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4>
+                            <i class="bi bi-person-circle"></i> {{ user_obj.get_full_name|default:user_obj.username }}
+                            {% if profile.is_blocked %}
+                            <span class="badge bg-danger ms-2">BANNED</span>
+                            {% elif not user_obj.is_active %}
+                            <span class="badge bg-secondary ms-2">INACTIVE</span>
+                            {% else %}
+                            <span class="badge bg-success ms-2">ACTIVE</span>
+                            {% endif %}
+                        </h4>
+                        <p class="mb-1"><strong>Email:</strong> {{ user_obj.email }}</p>
+                        <p class="mb-1"><strong>Username:</strong> {{ user_obj.username }}</p>
+                        <p class="mb-1"><strong>Wallet Balance:</strong> ₹{{ profile.wallet_balance }}</p>
+                        <p class="mb-0"><strong>Member Since:</strong> {{ user_obj.date_joined|date:"M d, Y" }}</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        {% if profile.is_blocked %}
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="unban_user">
+                            <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('Are you sure you want to unban this user?')">
+                                <i class="bi bi-unlock"></i> Unban User
+                            </button>
+                        </form>
+                        {% else %}
+                        <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#banUserModal">
+                            <i class="bi bi-ban"></i> Ban User
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if profile.is_blocked %}
+                <div class="alert alert-danger mt-3 mb-0">
+                    <strong><i class="bi bi-exclamation-triangle"></i> Ban Information:</strong><br>
+                    <strong>Reason:</strong> {{ profile.blocked_reason }}<br>
+                    <strong>Banned At:</strong> {{ profile.blocked_at|date:"M d, Y H:i" }}<br>
+                    <strong>Banned By:</strong> {{ profile.blocked_by.username|default:"System" }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Permissions Management -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-shield-lock"></i> User Permissions</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_permissions">
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> <strong>Note:</strong> Unchecked permissions will restrict user access to those features.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-controller"></i> Game Access</h6>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" name="can_play_games" id="can_play_games" {% if profile.can_play_games %}checked{% endif %}>
+                                <label class="form-check-label" for="can_play_games">
+                                    <strong>Can Play Games</strong><br>
+                                    <small class="text-muted">Allow user to participate in games</small>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" name="can_view_games" id="can_view_games" {% if profile.can_view_games %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_games">
+                                    <strong>Can View Games</strong><br>
+                                    <small class="text-muted">Allow user to view game pages</small>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" name="can_view_leaderboard" id="can_view_leaderboard" {% if profile.can_view_leaderboard %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_leaderboard">
+                                    <strong>Can View Leaderboard</strong><br>
+                                    <small class="text-muted">Allow user to see rankings and winners</small>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2 mb-3"><i class="bi bi-wallet2"></i> Financial Access</h6>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" name="can_deposit" id="can_deposit" {% if profile.can_deposit %}checked{% endif %}>
+                                <label class="form-check-label" for="can_deposit">
+                                    <strong>Can Make Deposits</strong><br>
+                                    <small class="text-muted">Allow user to deposit money</small>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" name="can_withdraw" id="can_withdraw" {% if profile.can_withdraw %}checked{% endif %}>
+                                <label class="form-check-label" for="can_withdraw">
+                                    <strong>Can Withdraw Money</strong><br>
+                                    <small class="text-muted">Allow user to withdraw funds</small>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" name="can_view_transaction_history" id="can_view_transaction_history" {% if profile.can_view_transaction_history %}checked{% endif %}>
+                                <label class="form-check-label" for="can_view_transaction_history">
+                                    <strong>Can View Transactions</strong><br>
+                                    <small class="text-muted">Allow user to see transaction history</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h6 class="border-bottom pb-2 mb-3 mt-3"><i class="bi bi-person-gear"></i> Account Access</h6>
+                            
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" name="can_edit_profile" id="can_edit_profile" {% if profile.can_edit_profile %}checked{% endif %}>
+                                <label class="form-check-label" for="can_edit_profile">
+                                    <strong>Can Edit Profile</strong><br>
+                                    <small class="text-muted">Allow user to modify profile information</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="restriction_notes" class="form-label"><strong>Restriction Notes</strong></label>
+                        <textarea class="form-control" name="restriction_notes" id="restriction_notes" rows="3" placeholder="Add notes about why these restrictions were applied...">{{ profile.restriction_notes }}</textarea>
+                        <small class="text-muted">These notes are for admin reference only</small>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save"></i> Save Permissions
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions & History -->
+    <div class="col-md-4">
+        <!-- Quick Restrictions -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0"><i class="bi bi-lightning"></i> Quick Restrictions</h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">Apply common restriction presets instantly</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="quick_restrict">
+                    
+                    <div class="mb-2">
+                        <button type="submit" name="restriction_type" value="no_games" class="btn btn-warning btn-sm w-100 text-start" onclick="return confirm('Restrict game access for this user?')">
+                            <i class="bi bi-controller"></i> Restrict Games Only
+                        </button>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <button type="submit" name="restriction_type" value="no_withdraw" class="btn btn-warning btn-sm w-100 text-start" onclick="return confirm('Restrict withdrawal access for this user?')">
+                            <i class="bi bi-cash-coin"></i> Restrict Withdrawals Only
+                        </button>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <button type="submit" name="restriction_type" value="no_deposit" class="btn btn-warning btn-sm w-100 text-start" onclick="return confirm('Restrict deposit access for this user?')">
+                            <i class="bi bi-wallet2"></i> Restrict Deposits Only
+                        </button>
+                    </div>
+                    
+                    <div class="mb-0">
+                        <button type="submit" name="restriction_type" value="view_only" class="btn btn-warning btn-sm w-100 text-start" onclick="return confirm('Set user to view-only mode? This will disable all actions.')">
+                            <i class="bi bi-eye"></i> View-Only Mode
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Permission History -->
+        {% if profile.last_permission_change %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-clock-history"></i> Recent Changes</h6>
+            </div>
+            <div class="card-body">
+                <p class="small mb-2">
+                    <strong>Last Modified:</strong><br>
+                    {{ profile.last_permission_change|date:"M d, Y H:i" }}
+                </p>
+                <p class="small mb-2">
+                    <strong>Modified By:</strong><br>
+                    {{ profile.permission_changed_by.username|default:"System" }}
+                </p>
+                {% if profile.restriction_notes %}
+                <p class="small mb-0">
+                    <strong>Notes:</strong><br>
+                    {{ profile.restriction_notes }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- User Statistics -->
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0"><i class="bi bi-graph-up"></i> User Statistics</h6>
+            </div>
+            <div class="card-body">
+                <p class="small mb-2"><strong>Total Deposits:</strong> ₹{{ profile.total_deposits }}</p>
+                <p class="small mb-2"><strong>Total Withdrawals:</strong> ₹{{ profile.total_withdrawals }}</p>
+                <p class="small mb-2"><strong>Total Winnings:</strong> ₹{{ profile.total_winnings }}</p>
+                <p class="small mb-0"><strong>Total Spent:</strong> ₹{{ profile.total_spent }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ban User Modal -->
+<div class="modal fade" id="banUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-ban"></i> Ban User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="ban_user">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <strong>Warning:</strong> Banning this user will:
+                        <ul class="mb-0 mt-2">
+                            <li>Block their access to all features</li>
+                            <li>Prevent them from playing games</li>
+                            <li>Disable deposits and withdrawals</li>
+                            <li>Remove game viewing permissions</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="blocked_reason" class="form-label"><strong>Ban Reason *</strong></label>
+                        <textarea class="form-control" name="blocked_reason" id="blocked_reason" rows="3" required placeholder="Explain why you are banning this user..."></textarea>
+                        <small class="text-muted">This reason will be visible to other admins</small>
+                    </div>
+                    
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-info-circle"></i> You can unban the user later by clicking the "Unban User" button.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-ban"></i> Ban User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

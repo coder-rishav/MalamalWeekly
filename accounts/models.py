@@ -26,6 +26,22 @@ class UserProfile(models.Model):
     is_verified = models.BooleanField(default=False)
     is_blocked = models.BooleanField(default=False)
     blocked_reason = models.TextField(blank=True, null=True)
+    blocked_at = models.DateTimeField(null=True, blank=True)
+    blocked_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='blocked_users')
+    
+    # User Permissions - Granular Control
+    can_play_games = models.BooleanField(default=True, help_text="Allow user to participate in games")
+    can_deposit = models.BooleanField(default=True, help_text="Allow user to make deposit requests")
+    can_withdraw = models.BooleanField(default=True, help_text="Allow user to make withdrawal requests")
+    can_view_games = models.BooleanField(default=True, help_text="Allow user to view game pages")
+    can_view_leaderboard = models.BooleanField(default=True, help_text="Allow user to view leaderboard")
+    can_view_transaction_history = models.BooleanField(default=True, help_text="Allow user to view transaction history")
+    can_edit_profile = models.BooleanField(default=True, help_text="Allow user to edit profile")
+    
+    # Restriction Notes
+    restriction_notes = models.TextField(blank=True, null=True, help_text="Admin notes about user restrictions")
+    last_permission_change = models.DateTimeField(null=True, blank=True)
+    permission_changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='permission_changes')
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)

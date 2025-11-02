@@ -106,6 +106,16 @@ def play_game(request, game_id, round_id):
     game_round = get_object_or_404(GameRound, id=round_id, game=game)
     
     if request.method == 'POST':
+        # Check if user has permission to play games
+        profile = request.user.profile
+        if not profile.can_play_games:
+            messages.error(request, 'You do not have permission to play games. Contact admin for more information.')
+            return redirect('games:game_detail', game_id=game_id)
+        
+        if profile.is_blocked:
+            messages.error(request, f'Your account has been banned. Reason: {profile.blocked_reason}')
+            return redirect('games:dashboard')
+        
         # Check if user can participate
         can_participate, message = game_round.can_participate(request.user)
         
