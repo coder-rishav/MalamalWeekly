@@ -60,6 +60,9 @@
                             </a>
                             {% elif round.status == 'completed' %}
                             <span class="badge bg-success"><i class="bi bi-check-circle"></i> Completed</span>
+                            {% if round.winning_combination %}
+                            <br><small class="text-muted">Winning: {{ round.winning_combination }}</small>
+                            {% endif %}
                             {% endif %}
                         </td>
                     </tr>

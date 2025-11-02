@@ -37,7 +37,12 @@
                                     <span class="badge bg-success">You</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ winner.game_round.game.name }}</td>
+                                <td>
+                                    {{ winner.game_round.game.name }}
+                                    {% if winner.game_round.winning_combination %}
+                                    <br><small class="text-muted">Winning: {{ winner.game_round.winning_combination }}</small>
+                                    {% endif %}
+                                </td>
                                 <td>Round #{{ winner.game_round.round_number }}</td>
                                 <td><strong class="text-success">₹{{ winner.prize_amount }}</strong></td>
                                 <td>{{ winner.announced_at|date:"M d, Y H:i" }}</td>

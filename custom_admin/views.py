@@ -371,7 +371,9 @@ def close_round(request, round_id):
 @login_required
 @user_passes_test(is_admin, login_url='/admin-panel/login/')
 def select_winner(request, round_id):
-    """Select winner for a round"""
+    """Select winner for a round - Random or Manual"""
+    import random
+    
     game_round = get_object_or_404(GameRound, id=round_id)
     
     if game_round.status != 'closed':
@@ -385,49 +387,186 @@ def select_winner(request, round_id):
         messages.error(request, 'No entries found for this round.')
         return redirect('custom_admin:game_rounds', game_id=game_round.game.id)
     
+    # Check if winner already exists
+    if Winner.objects.filter(game_round=game_round).exists():
+        messages.error(request, 'Winner already selected for this round.')
+        return redirect('custom_admin:game_rounds', game_id=game_round.game.id)
+    
     if request.method == 'POST':
-        entry_id = request.POST.get('entry_id')
-        entry = get_object_or_404(UserEntry, id=entry_id, game_round=game_round)
+        selection_method = request.POST.get('selection_method')
         
-        # Check if winner already exists
-        if Winner.objects.filter(game_round=game_round).exists():
-            messages.error(request, 'Winner already selected for this round.')
+        if selection_method == 'auto':
+            # Automatic winner selection based on game type
+            game = game_round.game
+            winning_combination = None
+            winners = []
+            
+            if game.game_type == 'number_match':
+                # Generate 5 random numbers between 0-99
+                winning_combination = [random.randint(0, 99) for _ in range(5)]
+                
+                # Find entries that match the exact sequence
+                for entry in entries:
+                    if entry.user_choice == winning_combination:
+                        winners.append(entry)
+            
+            elif game.game_type == 'lucky_draw':
+                # Generate 1 random number between 1-100
+                winning_combination = [random.randint(1, 100)]
+                
+                # Find entries that match the number
+                for entry in entries:
+                    if entry.user_choice == winning_combination:
+                        winners.append(entry)
+            
+            elif game.game_type == 'color_game':
+                # Select random color
+                colors = ['red', 'green', 'blue', 'yellow']
+                winning_combination = [random.choice(colors)]
+                
+                # Find entries that match the color
+                for entry in entries:
+                    if entry.user_choice == winning_combination:
+                        winners.append(entry)
+            
+            # Save winning combination
+            game_round.winning_combination = winning_combination
+            game_round.save()
+            
+            if not winners:
+                messages.warning(request, f'No matching entries found! Winning combination: {winning_combination}. No winner for this round.')
+                game_round.status = 'completed'
+                game_round.has_winner = False
+                game_round.result_announced_at = timezone.now()
+                game_round.save()
+                return redirect('custom_admin:game_rounds', game_id=game_round.game.id)
+            
+            # If multiple winners, split prize or select first one
+            if len(winners) > 1:
+                # Split prize equally among winners
+                prize_per_winner = game_round.game.winning_amount / len(winners)
+                winner_names = []
+                
+                for entry in winners:
+                    # Create winner
+                    winner = Winner.objects.create(
+                        game_round=game_round,
+                        user=entry.user,
+                        entry=entry,
+                        prize_amount=prize_per_winner,
+                        announced_at=timezone.now()
+                    )
+                    
+                    # Add prize to user wallet
+                    entry.user.profile.add_credits(prize_per_winner)
+                    
+                    # Create transaction
+                    Transaction.objects.create(
+                        user=entry.user,
+                        transaction_type='prize',
+                        amount=prize_per_winner,
+                        status='completed',
+                        balance_before=entry.user.profile.wallet_balance - prize_per_winner,
+                        balance_after=entry.user.profile.wallet_balance,
+                        description=f'Prize for {game_round.game.name} - Round {game_round.round_number}',
+                        completed_at=timezone.now()
+                    )
+                    
+                    # Mark entry as winner
+                    entry.is_winner = True
+                    entry.save()
+                    
+                    winner_names.append(entry.user.username)
+                
+                game_round.status = 'completed'
+                game_round.has_winner = True
+                game_round.result_announced_at = timezone.now()
+                game_round.save()
+                
+                messages.success(request, f'{len(winners)} winners found! Winning combination: {winning_combination}. Prize split: ₹{prize_per_winner} each to {", ".join(winner_names)}')
+            else:
+                # Single winner
+                entry = winners[0]
+                
+                # Create winner
+                winner = Winner.objects.create(
+                    game_round=game_round,
+                    user=entry.user,
+                    entry=entry,
+                    prize_amount=game_round.game.winning_amount,
+                    announced_at=timezone.now()
+                )
+                
+                # Add prize to user wallet
+                entry.user.profile.add_credits(winner.prize_amount)
+                
+                # Create transaction
+                Transaction.objects.create(
+                    user=entry.user,
+                    transaction_type='prize',
+                    amount=winner.prize_amount,
+                    status='completed',
+                    balance_before=entry.user.profile.wallet_balance - winner.prize_amount,
+                    balance_after=entry.user.profile.wallet_balance,
+                    description=f'Prize for {game_round.game.name} - Round {game_round.round_number}',
+                    completed_at=timezone.now()
+                )
+                
+                # Update round status
+                game_round.status = 'completed'
+                game_round.has_winner = True
+                game_round.result_announced_at = timezone.now()
+                game_round.save()
+                
+                # Mark entry as winner
+                entry.is_winner = True
+                entry.save()
+                
+                messages.success(request, f'Winner found! {entry.user.username} won ₹{winner.prize_amount}. Winning combination: {winning_combination}')
+            
             return redirect('custom_admin:game_rounds', game_id=game_round.game.id)
         
-        # Create winner
-        winner = Winner.objects.create(
-            game_round=game_round,
-            user=entry.user,
-            entry=entry,
-            prize_amount=game_round.game.winning_amount,
-            announced_at=timezone.now()
-        )
-        
-        # Add prize to user wallet
-        entry.user.profile.add_credits(winner.prize_amount)
-        
-        # Create transaction
-        Transaction.objects.create(
-            user=entry.user,
-            transaction_type='prize',
-            amount=winner.prize_amount,
-            status='completed',
-            balance_before=entry.user.profile.wallet_balance - winner.prize_amount,
-            balance_after=entry.user.profile.wallet_balance,
-            description=f'Prize for {game_round.game.name} - Round {game_round.round_number}',
-            completed_at=timezone.now()
-        )
-        
-        # Update round status
-        game_round.status = 'completed'
-        game_round.save()
-        
-        # Mark entry as winner
-        entry.is_winner = True
-        entry.save()
-        
-        messages.success(request, f'Winner selected! {entry.user.username} won ₹{winner.prize_amount}')
-        return redirect('custom_admin:game_rounds', game_id=game_round.game.id)
+        elif selection_method == 'manual':
+            # Manual winner selection (old method)
+            entry_id = request.POST.get('entry_id')
+            entry = get_object_or_404(UserEntry, id=entry_id, game_round=game_round)
+            
+            # Create winner
+            winner = Winner.objects.create(
+                game_round=game_round,
+                user=entry.user,
+                entry=entry,
+                prize_amount=game_round.game.winning_amount,
+                announced_at=timezone.now()
+            )
+            
+            # Add prize to user wallet
+            entry.user.profile.add_credits(winner.prize_amount)
+            
+            # Create transaction
+            Transaction.objects.create(
+                user=entry.user,
+                transaction_type='prize',
+                amount=winner.prize_amount,
+                status='completed',
+                balance_before=entry.user.profile.wallet_balance - winner.prize_amount,
+                balance_after=entry.user.profile.wallet_balance,
+                description=f'Prize for {game_round.game.name} - Round {game_round.round_number}',
+                completed_at=timezone.now()
+            )
+            
+            # Update round status
+            game_round.status = 'completed'
+            game_round.has_winner = True
+            game_round.result_announced_at = timezone.now()
+            game_round.save()
+            
+            # Mark entry as winner
+            entry.is_winner = True
+            entry.save()
+            
+            messages.success(request, f'Winner manually selected! {entry.user.username} won ₹{winner.prize_amount}')
+            return redirect('custom_admin:game_rounds', game_id=game_round.game.id)
     
     context = {
         'game_round': game_round,

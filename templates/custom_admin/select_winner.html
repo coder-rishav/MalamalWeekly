@@ -15,12 +15,15 @@
         <h5>Round Information</h5>
         <div class="row">
             <div class="col-md-3">
-                <strong>Total Participants:</strong> {{ entries.count }}
+                <strong>Game Type:</strong> {{ game_round.game.get_game_type_display }}
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <strong>Participants:</strong> {{ entries.count }}
+            </div>
+            <div class="col-md-2">
                 <strong>Pool Amount:</strong> ₹{{ game_round.total_pool_amount }}
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <strong>Prize:</strong> ₹{{ game_round.game.winning_amount }}
             </div>
             <div class="col-md-3">
@@ -30,19 +33,75 @@
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header bg-warning">
-        <h5 class="mb-0"><i class="bi bi-trophy"></i> Select Winner from Entries</h5>
+<!-- Automatic Winner Selection (RECOMMENDED) -->
+<div class="card mb-4 border-success">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="bi bi-dice-5"></i> Automatic Winner Selection (Fair & Random) - RECOMMENDED</h5>
     </div>
     <div class="card-body">
+        <div class="alert alert-success">
+            <i class="bi bi-shield-check"></i> <strong>Fair Play System:</strong> 
+            This system generates a random winning combination and automatically selects winner(s) who match it.
+            {% if game_round.game.game_type == 'number_match' %}
+            <br><br><strong>How it works for Number Match:</strong>
+            <ul class="mb-0">
+                <li>System generates 5 random numbers (0-99)</li>
+                <li>Finds entries matching ALL 5 numbers in EXACT sequence</li>
+                <li>If multiple winners, prize is split equally</li>
+                <li>If no match, round ends with no winner</li>
+            </ul>
+            {% elif game_round.game.game_type == 'lucky_draw' %}
+            <br><br><strong>How it works for Lucky Draw:</strong>
+            <ul class="mb-0">
+                <li>System generates 1 random number (1-100)</li>
+                <li>Finds entries matching the lucky number</li>
+                <li>If multiple winners, prize is split equally</li>
+                <li>If no match, round ends with no winner</li>
+            </ul>
+            {% elif game_round.game.game_type == 'color_game' %}
+            <br><br><strong>How it works for Color Prediction:</strong>
+            <ul class="mb-0">
+                <li>System randomly selects a color (Red/Green/Blue/Yellow)</li>
+                <li>Finds all entries matching that color</li>
+                <li>If multiple winners, prize is split equally</li>
+                <li>If no match, round ends with no winner</li>
+            </ul>
+            {% endif %}
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="selection_method" value="auto">
+            <div class="text-center">
+                <button type="submit" class="btn btn-success btn-lg" 
+                        onclick="return confirm('Generate random winning combination and select winner(s) automatically? This ensures fair play.')">
+                    <i class="bi bi-shuffle"></i> Generate Random Winner (Fair System)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Manual Winner Selection (Use with caution) -->
+<div class="card border-warning">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><i class="bi bi-hand-index"></i> Manual Winner Selection (Use with Caution)</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i> <strong>Warning:</strong> 
+            Manual selection may appear biased. Use automatic selection above for fairness.
+        </div>
+        
         {% if entries %}
         <form method="post">
             {% csrf_token %}
+            <input type="hidden" name="selection_method" value="manual">
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover table-sm">
                     <thead>
                         <tr>
-                            <th>Select</th>
+                            <th width="50">Select</th>
                             <th>Entry #</th>
                             <th>User</th>
                             <th>Choice</th>
@@ -53,12 +112,11 @@
                         {% for entry in entries %}
                         <tr>
                             <td>
-                                <input type="radio" name="entry_id" value="{{ entry.id }}" required>
+                                <input type="radio" name="entry_id" value="{{ entry.id }}">
                             </td>
                             <td><code>{{ entry.entry_number }}</code></td>
                             <td>
-                                <strong>{{ entry.user.username }}</strong><br>
-                                <small class="text-muted">{{ entry.user.email }}</small>
+                                <strong>{{ entry.user.username }}</strong>
                             </td>
                             <td><code>{{ entry.user_choice }}</code></td>
                             <td><small>{{ entry.created_at|date:"M d, Y H:i" }}</small></td>
@@ -68,10 +126,10 @@
                 </table>
             </div>
             
-            <div class="text-center mt-4">
-                <button type="submit" class="btn btn-warning btn-lg" 
-                        onclick="return confirm('Are you sure you want to select this winner? This action cannot be undone.')">
-                    <i class="bi bi-trophy-fill"></i> Declare Winner
+            <div class="text-center mt-3">
+                <button type="submit" class="btn btn-warning" 
+                        onclick="return confirm('Are you sure you want to manually select this winner? Consider using automatic selection for fairness.')">
+                    <i class="bi bi-person-check"></i> Manually Declare Winner
                 </button>
             </div>
         </form>
