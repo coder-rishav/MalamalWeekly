@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Malamal Weekly{% endblock %}
+
+{% block content %}
+<h1 class="text-white mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h1>
+
+<!-- Wallet & Stats -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <h6><i class="bi bi-wallet2"></i> Wallet Balance</h6>
+            <h2>₹{{ profile.wallet_balance }}</h2>
+            <a href="{% url 'transactions:add_credits' %}" class="btn btn-light btn-sm mt-2">
+                <i class="bi bi-plus-circle"></i> Add Credits
+            </a>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <h6><i class="bi bi-trophy"></i> Total Winnings</h6>
+            <h2>₹{{ profile.total_winnings }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <h6><i class="bi bi-ticket-perforated"></i> Games Played</h6>
+            <h2>{{ recent_entries|length }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <h6><i class="bi bi-currency-rupee"></i> Total Spent</h6>
+            <h2>₹{{ profile.total_spent }}</h2>
+        </div>
+    </div>
+</div>
+
+<!-- Active Games -->
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-controller"></i> Active Games</h5>
+            </div>
+            <div class="card-body">
+                {% if active_games %}
+                <div class="row">
+                    {% for game in active_games %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6>{{ game.name }}</h6>
+                                <p class="mb-2 small">{{ game.description|truncatewords:15 }}</p>
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-info">₹{{ game.entry_fee }}</span>
+                                    <span class="badge bg-success">₹{{ game.winning_amount }}</span>
+                                </div>
+                                <a href="{% url 'games:game_detail' game.id %}" class="btn btn-primary btn-sm w-100 mt-2">
+                                    Play Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No active games at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Entries -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-ticket"></i> Recent Entries</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_entries %}
+                <div class="list-group">
+                    {% for entry in recent_entries %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ entry.game_round.game.name }}</strong>
+                            {% if entry.is_winner %}
+                            <span class="badge bg-success">Won!</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Pending</span>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">{{ entry.created_at|date:"M d, H:i" }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'games:my_entries' %}" class="btn btn-outline-primary btn-sm w-100 mt-3">
+                    View All Entries
+                </a>
+                {% else %}
+                <p class="text-muted text-center">No entries yet.</p>
+                <a href="{% url 'games:games_list' %}" class="btn btn-primary btn-sm w-100">
+                    Start Playing
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Winnings -->
+{% if my_winnings %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-trophy-fill"></i> My Winnings</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Game</th>
+                                <th>Prize</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for win in my_winnings %}
+                            <tr>
+                                <td>{{ win.game_round.game.name }}</td>
+                                <td><strong>₹{{ win.prize_amount }}</strong></td>
+                                <td>{{ win.announced_at|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if win.prize_credited %}
+                                    <span class="badge bg-success">Credited</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Processing</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

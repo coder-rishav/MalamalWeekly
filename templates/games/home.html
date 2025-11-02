@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Malamal Weekly{% endblock %}
+
+{% block content %}
+<div class="text-center text-white py-5">
+    <h1 class="display-3 fw-bold mb-3">
+        <i class="bi bi-trophy-fill"></i> Welcome to Malamal Weekly
+    </h1>
+    <p class="lead mb-4">India's #1 Online Lottery & Gaming Platform</p>
+    <p class="h5 mb-5">Win Big! Play Fair! Get Lucky!</p>
+    <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg me-3">
+        <i class="bi bi-person-plus"></i> Register Now
+    </a>
+    <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg">
+        <i class="bi bi-box-arrow-in-right"></i> Login
+    </a>
+</div>
+
+<!-- Featured Games -->
+<div class="row mt-5">
+    <div class="col-12 mb-4">
+        <h2 class="text-white text-center"><i class="bi bi-star-fill"></i> Featured Games</h2>
+    </div>
+    {% for game in featured_games %}
+    <div class="col-md-4 mb-4">
+        <div class="card game-card">
+            {% if game.is_featured %}
+            <span class="featured-badge"><i class="bi bi-star-fill"></i> Featured</span>
+            {% endif %}
+            {% if game.image %}
+            <img src="{{ game.image.url }}" alt="{{ game.name }}">
+            {% else %}
+            <div style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-controller" style="font-size: 4rem; color: white;"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ game.name }}</h5>
+                <p class="card-text">{{ game.description|truncatewords:20 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-primary">₹{{ game.entry_fee }} Entry</span>
+                    <span class="badge bg-success">₹{{ game.winning_amount }} Prize</span>
+                </div>
+                <a href="{% url 'accounts:register' %}" class="btn btn-primary w-100 mt-3">
+                    Play Now
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle"></i> No games available at the moment. Check back soon!
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Recent Winners -->
+{% if recent_winners %}
+<div class="row mt-5">
+    <div class="col-12 mb-4">
+        <h2 class="text-white text-center"><i class="bi bi-trophy"></i> Recent Winners</h2>
+    </div>
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th><i class="bi bi-person"></i> Winner</th>
+                                <th><i class="bi bi-controller"></i> Game</th>
+                                <th><i class="bi bi-currency-rupee"></i> Prize</th>
+                                <th><i class="bi bi-calendar"></i> Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for winner in recent_winners %}
+                            <tr>
+                                <td><strong>{{ winner.user.username }}</strong></td>
+                                <td>{{ winner.game_round.game.name }}</td>
+                                <td><span class="badge bg-success">₹{{ winner.prize_amount }}</span></td>
+                                <td>{{ winner.announced_at|date:"M d, Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Features -->
+<div class="row mt-5 text-white">
+    <div class="col-md-4 text-center mb-4">
+        <i class="bi bi-shield-check" style="font-size: 3rem;"></i>
+        <h4 class="mt-3">100% Secure</h4>
+        <p>Your data and transactions are completely safe and encrypted</p>
+    </div>
+    <div class="col-md-4 text-center mb-4">
+        <i class="bi bi-lightning-charge" style="font-size: 3rem;"></i>
+        <h4 class="mt-3">Instant Payouts</h4>
+        <p>Winners get credited instantly to their wallet</p>
+    </div>
+    <div class="col-md-4 text-center mb-4">
+        <i class="bi bi-headset" style="font-size: 3rem;"></i>
+        <h4 class="mt-3">24/7 Support</h4>
+        <p>Our support team is always here to help you</p>
+    </div>
+</div>
+{% endblock %}
