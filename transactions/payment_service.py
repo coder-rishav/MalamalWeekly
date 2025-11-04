@@ -47,6 +47,9 @@ class PaymentService:
         # Calculate fees
         fee_calc = self.calculate_fees(amount)
         
+        # Get current balance
+        current_balance = user.profile.wallet_balance
+        
         # Create transaction record
         transaction = Transaction.objects.create(
             user=user,
@@ -56,7 +59,8 @@ class PaymentService:
             total_amount=fee_calc['total'],
             payment_gateway=self.gateway,
             status='pending',
-            balance_before=user.profile.wallet_balance,
+            balance_before=current_balance,
+            balance_after=current_balance,  # Will be updated when payment completes
             description=description
         )
         
@@ -386,7 +390,7 @@ class PaymentService:
     def fail_payment(self, transaction, reason):
         """Mark payment as failed"""
         transaction.status = 'failed'
-        transaction.failure_reason = reason
+        transaction.description = f"{transaction.description or ''}\nFailure: {reason}"
         transaction.save()
 
 
