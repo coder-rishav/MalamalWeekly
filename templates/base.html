@@ -170,15 +170,19 @@
         .wallet-badge {
             background: var(--success-gradient) !important;
             color: white !important;
-            padding: 0.6rem 1.5rem !important;
+            padding: 0.6rem 1.2rem !important;
             border-radius: 50px !important;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
             box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
             transition: all 0.3s ease;
             border: 2px solid rgba(255, 255, 255, 0.2);
             position: relative;
             overflow: hidden;
+            white-space: nowrap;
+            max-width: 150px;
+            text-overflow: ellipsis;
+            display: inline-block;
         }
         
         .wallet-badge::before {
@@ -430,6 +434,22 @@
             
             .wallet-badge {
                 margin-top: 0.5rem;
+                font-size: 0.85rem;
+                padding: 0.5rem 1rem !important;
+                max-width: 130px;
+            }
+            
+            .nav-link {
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Tablet and small desktop */
+        @media (max-width: 1200px) {
+            .wallet-badge {
+                font-size: 0.9rem;
+                padding: 0.5rem 1rem !important;
+                max-width: 140px;
             }
         }
         

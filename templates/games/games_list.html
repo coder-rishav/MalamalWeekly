@@ -31,8 +31,8 @@
                 
                 <div class="mt-auto">
                     <div class="d-flex justify-content-between mb-3">
-                        <span class="badge bg-primary">Entry: ₹{{ game.entry_fee }}</span>
-                        <span class="badge bg-success">Prize: ₹{{ game.winning_amount }}</span>
+                        <span class="badge bg-primary">Entry: {% load currency_tags %}{% format_user_amount game.entry_fee user %}</span>
+                        <span class="badge bg-success">Prize: {% format_user_amount game.winning_amount user %}</span>
                     </div>
                     
                     <div class="mb-2">

@@ -32,7 +32,7 @@
     <div class="col-md-3 mb-3">
         <div class="stats-card">
             <h6><i class="bi bi-wallet2"></i> Wallet Balance</h6>
-            <h2>₹{{ profile.wallet_balance }}</h2>
+            <h2>{% load currency_tags %}{% format_user_amount profile.wallet_balance user %}</h2>
             {% if profile.can_deposit %}
             <a href="{% url 'transactions:add_credits' %}" class="btn btn-light btn-sm mt-2">
                 <i class="bi bi-plus-circle"></i> Add Credits
@@ -47,7 +47,7 @@
     <div class="col-md-3 mb-3">
         <div class="stats-card">
             <h6><i class="bi bi-trophy"></i> Total Winnings</h6>
-            <h2>₹{{ profile.total_winnings }}</h2>
+            <h2>{% load currency_tags %}{% format_user_amount profile.total_winnings user %}</h2>
         </div>
     </div>
     <div class="col-md-3 mb-3">
@@ -58,8 +58,8 @@
     </div>
     <div class="col-md-3 mb-3">
         <div class="stats-card">
-            <h6><i class="bi bi-currency-rupee"></i> Total Spent</h6>
-            <h2>₹{{ profile.total_spent }}</h2>
+            <h6><i class="bi bi-cash-stack"></i> Total Spent</h6>
+            <h2>{% load currency_tags %}{% format_user_amount profile.total_spent user %}</h2>
         </div>
     </div>
 </div>
@@ -82,8 +82,8 @@
                                 <h6>{{ game.name }}</h6>
                                 <p class="mb-2 small">{{ game.description|truncatewords:15 }}</p>
                                 <div class="d-flex justify-content-between">
-                                    <span class="badge bg-info">₹{{ game.entry_fee }}</span>
-                                    <span class="badge bg-success">₹{{ game.winning_amount }}</span>
+                                    <span class="badge bg-info">{% load currency_tags %}{% format_user_amount game.entry_fee user %}</span>
+                                    <span class="badge bg-success">{% format_user_amount game.winning_amount user %}</span>
                                 </div>
                                 {% if profile.can_play_games %}
                                 <a href="{% url 'games:game_detail' game.id %}" class="btn btn-primary btn-sm w-100 mt-2">

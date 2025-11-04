@@ -28,7 +28,7 @@
                         <div class="card bg-light">
                             <div class="card-body">
                                 <h6 class="text-muted">Entry Fee</h6>
-                                <h4 class="text-primary">₹{{ game.entry_fee }}</h4>
+                                <h4 class="text-primary">{% load currency_tags %}{% format_user_amount game.entry_fee user %}</h4>
                             </div>
                         </div>
                     </div>
@@ -36,7 +36,7 @@
                         <div class="card bg-light">
                             <div class="card-body">
                                 <h6 class="text-muted">Prize</h6>
-                                <h4 class="text-success">₹{{ game.winning_amount }}</h4>
+                                <h4 class="text-success">{% load currency_tags %}{% format_user_amount game.winning_amount user %}</h4>
                             </div>
                         </div>
                     </div>
@@ -79,7 +79,7 @@
                 </div>
                 
                 <p><strong>Participants:</strong> {{ active_round.total_participants }}/{{ game.max_participants }}</p>
-                <p><strong>Prize Pool:</strong> ₹{{ active_round.total_pool_amount }}</p>
+                <p><strong>Prize Pool:</strong> {% load currency_tags %}{% format_user_amount active_round.total_pool_amount user %}</p>
                 
                 {% if user_entry %}
                 <div class="alert alert-success">
@@ -160,8 +160,8 @@
                     
                     <div class="alert alert-info mt-3">
                         <small>
-                            <strong>Cost:</strong> ₹{{ game.entry_fee }}<br>
-                            <strong>Your Balance:</strong> ₹{{ user.profile.wallet_balance }}
+                            <strong>Cost:</strong> {% load currency_tags %}{% format_user_amount game.entry_fee user %}<br>
+                            <strong>Your Balance:</strong> {% format_user_amount user.profile.wallet_balance user %}
                         </small>
                     </div>
                     
