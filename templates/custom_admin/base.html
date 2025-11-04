@@ -123,8 +123,6 @@
                                 (function() {
                                     let toastrType = 'info';
                                     let tags = '{{ message.tags }}';
-                                    // Strip HTML tags and decode entities
-                                    let messageText = '{{ message|striptags|escapejs }}';
                                     
                                     if (tags.includes('success')) {
                                         toastrType = 'success';
@@ -134,7 +132,13 @@
                                         toastrType = 'warning';
                                     }
                                     
-                                    toastr[toastrType](messageText);
+                                    // Force escapeHtml to false and clean the message
+                                    toastr.options.escapeHtml = false;
+                                    const tempDiv = document.createElement('div');
+                                    tempDiv.innerHTML = '{{ message|escapejs }}';
+                                    const cleanText = tempDiv.textContent || tempDiv.innerText || '';
+                                    
+                                    toastr[toastrType](cleanText);
                                 })();
                             {% endfor %}
                         });
