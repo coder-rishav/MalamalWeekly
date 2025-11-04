@@ -140,12 +140,16 @@ def payment_failure(request):
     # Update transaction status to failed
     if transaction_id:
         try:
-            transaction = Transaction.objects.get(id=transaction_id)
+            # Use reference_id instead of id (reference_id is the string like 'TXN-...')
+            transaction = Transaction.objects.get(reference_id=transaction_id)
             if transaction.status == 'pending':
                 transaction.status = 'failed'
                 transaction.payment_status = reason
                 transaction.save()
         except Transaction.DoesNotExist:
+            pass
+        except ValueError:
+            # In case an invalid transaction_id format is passed
             pass
     
     context = {
