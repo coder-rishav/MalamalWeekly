@@ -236,7 +236,7 @@ document.querySelectorAll('.gateway-card').forEach(card => {
 });
 
 function initiatePayment(gatewayId) {
-    if (!confirm('Proceed with payment of ₹' + document.getElementById('summaryTotal').textContent + '?')) {
+    if (!confirm('Proceed with payment of ' + document.getElementById('summaryTotal').textContent + '?')) {
         return;
     }
     
