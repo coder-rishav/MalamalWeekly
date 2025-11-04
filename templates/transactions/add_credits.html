@@ -184,6 +184,11 @@ document.getElementById('continueToGateway').addEventListener('click', function(
         return;
     }
     
+    // Update summary with selected amount (no fees yet until gateway is selected)
+    document.getElementById('summaryAmount').textContent = '₹' + selectedAmount.toFixed(2);
+    document.getElementById('summaryFee').textContent = '₹0.00';
+    document.getElementById('summaryTotal').textContent = '₹' + selectedAmount.toFixed(2);
+    
     // Show step 2
     document.getElementById('step1').style.display = 'none';
     document.getElementById('step2').style.display = 'block';
