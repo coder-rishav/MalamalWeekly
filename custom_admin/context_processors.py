@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from accounts.models import BanAppeal, UserProfile
 from games.models import Game, GameRound
 from transactions.models import Transaction, DepositRequest, WithdrawalRequest
-from cms.models import CMSPage
+from cms.models import Page
 
 
 def admin_context(request):
@@ -45,7 +45,7 @@ def admin_context(request):
         context['recent_transactions_count'] = recent_transactions
         
         # Count total CMS pages
-        total_pages = CMSPage.objects.count()
+        total_pages = Page.objects.count()
         context['total_cms_pages_count'] = total_pages
     
     return context
