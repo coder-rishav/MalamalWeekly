@@ -11,29 +11,224 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+        
         :root {
-            --primary-color: #6f42c1;
-            --secondary-color: #ffc107;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --gold-gradient: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #667eea 100%);
+            font-family: 'Poppins', sans-serif;
+            position: relative;
+            overflow-x: hidden;
         }
         
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(252, 70, 107, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* Modern Glassmorphism Navbar */
         .navbar {
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar.scrolled {
             background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
         .navbar-brand {
-            font-weight: bold;
-            color: var(--primary-color) !important;
-            font-size: 1.5rem;
+            font-weight: 800;
+            font-size: 1.8rem;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .navbar-brand:hover {
+            transform: scale(1.05);
+        }
+        
+        .navbar-brand i {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+            animation: trophy-glow 2s infinite alternate;
+        }
+        
+        @keyframes trophy-glow {
+            0% { filter: drop-shadow(0 0 5px rgba(255, 210, 0, 0.5)); }
+            100% { filter: drop-shadow(0 0 15px rgba(255, 210, 0, 0.8)); }
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            margin: 0 0.2rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 60%;
+            height: 2px;
+            background: var(--gold-gradient);
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .nav-link:hover::after {
+            transform: translateX(-50%) scaleX(1);
+        }
+        
+        .nav-link i {
+            margin-right: 0.3rem;
+            font-size: 1.1rem;
+        }
+        
+        /* Modern Wallet Badge */
+        .wallet-badge {
+            background: var(--success-gradient) !important;
+            color: white !important;
+            padding: 0.6rem 1.5rem !important;
+            border-radius: 50px !important;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .wallet-badge::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            animation: wallet-shine 3s infinite;
+        }
+        
+        @keyframes wallet-shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .wallet-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.6);
+        }
+        
+        /* Dropdown Menu Styling */
+        .dropdown-menu {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .dropdown-item {
+            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            margin: 0.2rem 0;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .dropdown-item:hover {
+            background: var(--primary-gradient);
+            color: white !important;
+            transform: translateX(5px);
+        }
+        
+        .dropdown-item i {
+            margin-right: 0.5rem;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            background: var(--gold-gradient);
+            border: none;
+            border-radius: 50px;
+            padding: 0.7rem 2rem;
+            font-weight: 600;
+            color: #000;
+            box-shadow: 0 4px 15px rgba(247, 151, 30, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(247, 151, 30, 0.6);
         }
         
         .main-content {
@@ -43,32 +238,16 @@
         
         .card {
             border: none;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            transition: all 0.4s ease;
+            background: rgba(255, 255, 255, 0.98);
+            overflow: hidden;
         }
         
         .card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 25px;
-            padding: 10px 30px;
-        }
-        
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-        }
-        
-        .wallet-badge {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-weight: bold;
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
         
         .game-card {
@@ -86,7 +265,7 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background: var(--secondary-color);
+            background: var(--gold-gradient);
             color: #000;
             padding: 5px 15px;
             border-radius: 20px;
@@ -94,22 +273,129 @@
             font-weight: bold;
         }
         
+        /* Modern Footer */
         footer {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 2rem 0;
-            margin-top: 3rem;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+            color: rgba(255, 255, 255, 0.9);
+            position: relative;
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        footer h5, footer h6 {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+        
+        footer h5 i {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+            padding: 0.3rem 0;
+        }
+        
+        footer a:hover {
+            color: #ffd200;
+            transform: translateX(5px);
+        }
+        
+        footer .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        footer .social-links a:hover {
+            background: var(--gold-gradient);
+            color: #000;
+            transform: translateY(-5px) rotate(360deg);
+            box-shadow: 0 5px 20px rgba(255, 210, 0, 0.4);
+        }
+        
+        footer hr {
+            border-color: rgba(255, 255, 255, 0.1);
+            margin: 2rem 0;
+        }
+        
+        .footer-copyright {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem 0;
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
         }
         
         .stats-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
             color: white;
-            border-radius: 15px;
+            border-radius: 20px;
             padding: 1.5rem;
         }
         
         .transaction-item {
             border-left: 4px solid #667eea;
             padding-left: 1rem;
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gold-gradient);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.4rem;
+            }
+            
+            .wallet-badge {
+                margin-top: 0.5rem;
+            }
         }
     </style>
     
@@ -210,37 +496,102 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <div class="row">
-                <div class="col-md-4">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
                     <h5><i class="bi bi-trophy-fill"></i> Malamal Weekly</h5>
-                    <p>Your trusted online lottery and gaming platform.</p>
+                    <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.8;">
+                        Your trusted online lottery and gaming platform. Experience the thrill of winning with secure, fair, and exciting games.
+                    </p>
+                    <div class="social-links mt-4">
+                        <a href="#" title="Facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="#" title="Twitter"><i class="bi bi-twitter"></i></a>
+                        <a href="#" title="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a href="#" title="YouTube"><i class="bi bi-youtube"></i></a>
+                    </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-lg-2 col-md-6">
                     <h6>Quick Links</h6>
                     <ul class="list-unstyled">
-                        <li><a href="{% url 'games:home' %}" class="text-decoration-none">Home</a></li>
-                        <li><a href="{% url 'games:games_list' %}" class="text-decoration-none">Games</a></li>
-                        <li><a href="{% url 'games:winners_list' %}" class="text-decoration-none">Winners</a></li>
-                        <li><a href="{% url 'games:leaderboard' %}" class="text-decoration-none">Leaderboard</a></li>
+                        <li><a href="{% url 'games:home' %}"><i class="bi bi-chevron-right"></i> Home</a></li>
+                        <li><a href="{% url 'games:games_list' %}"><i class="bi bi-chevron-right"></i> Games</a></li>
+                        <li><a href="{% url 'games:winners_list' %}"><i class="bi bi-chevron-right"></i> Winners</a></li>
+                        <li><a href="{% url 'games:leaderboard' %}"><i class="bi bi-chevron-right"></i> Leaderboard</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4">
-                    <h6>Contact</h6>
-                    <p>
-                        <i class="bi bi-envelope"></i> support@malamalweekly.com<br>
-                        <i class="bi bi-phone"></i> +91 1234567890
-                    </p>
+                <div class="col-lg-3 col-md-6">
+                    <h6>Information</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> About Us</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> How to Play</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Terms & Conditions</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Privacy Policy</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Responsible Gaming</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h6>Contact Us</h6>
+                    <ul class="list-unstyled">
+                        <li style="margin-bottom: 1rem; color: rgba(255, 255, 255, 0.8);">
+                            <i class="bi bi-envelope-fill"></i> 
+                            <a href="mailto:support@malamalweekly.com" style="color: rgba(255, 255, 255, 0.8);">support@malamalweekly.com</a>
+                        </li>
+                        <li style="margin-bottom: 1rem; color: rgba(255, 255, 255, 0.8);">
+                            <i class="bi bi-telephone-fill"></i> +91 1234567890
+                        </li>
+                        <li style="margin-bottom: 1rem; color: rgba(255, 255, 255, 0.8);">
+                            <i class="bi bi-clock-fill"></i> 24/7 Support
+                        </li>
+                        <li style="color: rgba(255, 255, 255, 0.8);">
+                            <i class="bi bi-geo-alt-fill"></i> Mumbai, India
+                        </li>
+                    </ul>
                 </div>
             </div>
             <hr>
-            <div class="text-center">
-                <p>&copy; 2025 Malamal Weekly. All rights reserved.</p>
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p style="color: rgba(255, 255, 255, 0.7); margin: 0;">
+                        &copy; 2025 Malamal Weekly. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p style="color: rgba(255, 255, 255, 0.7); margin: 0;">
+                        <i class="bi bi-shield-check"></i> Secure & Licensed Platform
+                    </p>
+                </div>
             </div>
         </div>
     </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS for Navbar Scroll Effect -->
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+        
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
     
     {% block extra_js %}{% endblock %}
 </body>
