@@ -53,7 +53,7 @@
                             {% if round.status == 'open' %}
                             <a href="{% url 'custom_admin:close_round' round.id %}" 
                                class="btn btn-sm btn-danger"
-                               onclick="return confirm('Close this round now? No more entries will be accepted.')">
+                               onclick="event.preventDefault(); Swal.fire({title: 'Close Round?', text: 'Close this round now? No more entries will be accepted.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Yes, close it!'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
                                 <i class="bi bi-x-circle"></i> Close Entry
                             </a>
                             {% elif round.status == 'closed' %}

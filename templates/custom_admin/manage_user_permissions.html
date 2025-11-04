@@ -37,10 +37,10 @@
                     </div>
                     <div class="col-md-4 text-end">
                         {% if profile.is_blocked %}
-                        <form method="post" class="d-inline">
+                        <form method="post" class="d-inline" id="unbanUserForm">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="unban_user">
-                            <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('Are you sure you want to unban this user?')">
+                            <button type="button" class="btn btn-success btn-lg" onclick="Swal.fire({title: 'Unban User?', text: 'Are you sure you want to unban {{ user_obj.username }}?', icon: 'question', showCancelButton: true, confirmButtonColor: '#28a745', cancelButtonColor: '#d33', confirmButtonText: 'Yes, unban user!'}).then((result) => {if (result.isConfirmed) document.getElementById('unbanUserForm').submit();});">
                                 <i class="bi bi-unlock"></i> Unban User
                             </button>
                         </form>
@@ -179,30 +179,31 @@
             <div class="card-body">
                 <p class="small text-muted mb-3">Apply common restriction presets instantly</p>
                 
-                <form method="post">
+                <form method="post" id="quickRestrictForm">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="quick_restrict">
+                    <input type="hidden" name="restriction_type" id="restrictionType">
                     
                     <div class="mb-2">
-                        <button type="submit" name="restriction_type" value="no_games" class="btn btn-warning btn-sm w-100 text-start" onclick="return confirm('Restrict game access for this user?')">
+                        <button type="button" class="btn btn-warning btn-sm w-100 text-start" onclick="Swal.fire({title: 'Restrict Game Access?', text: 'Restrict game access for this user?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ffc107', cancelButtonColor: '#6c757d', confirmButtonText: 'Yes, restrict!'}).then((result) => {if (result.isConfirmed) { document.getElementById('restrictionType').value = 'no_games'; document.getElementById('quickRestrictForm').submit(); }});">
                             <i class="bi bi-controller"></i> Restrict Games Only
                         </button>
                     </div>
                     
                     <div class="mb-2">
-                        <button type="submit" name="restriction_type" value="no_withdraw" class="btn btn-warning btn-sm w-100 text-start" onclick="return confirm('Restrict withdrawal access for this user?')">
+                        <button type="button" class="btn btn-warning btn-sm w-100 text-start" onclick="Swal.fire({title: 'Restrict Withdrawals?', text: 'Restrict withdrawal access for this user?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ffc107', cancelButtonColor: '#6c757d', confirmButtonText: 'Yes, restrict!'}).then((result) => {if (result.isConfirmed) { document.getElementById('restrictionType').value = 'no_withdraw'; document.getElementById('quickRestrictForm').submit(); }});">
                             <i class="bi bi-cash-coin"></i> Restrict Withdrawals Only
                         </button>
                     </div>
                     
                     <div class="mb-2">
-                        <button type="submit" name="restriction_type" value="no_deposit" class="btn btn-warning btn-sm w-100 text-start" onclick="return confirm('Restrict deposit access for this user?')">
+                        <button type="button" class="btn btn-warning btn-sm w-100 text-start" onclick="Swal.fire({title: 'Restrict Deposits?', text: 'Restrict deposit access for this user?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ffc107', cancelButtonColor: '#6c757d', confirmButtonText: 'Yes, restrict!'}).then((result) => {if (result.isConfirmed) { document.getElementById('restrictionType').value = 'no_deposit'; document.getElementById('quickRestrictForm').submit(); }});">
                             <i class="bi bi-wallet2"></i> Restrict Deposits Only
                         </button>
                     </div>
                     
                     <div class="mb-0">
-                        <button type="submit" name="restriction_type" value="view_only" class="btn btn-warning btn-sm w-100 text-start" onclick="return confirm('Set user to view-only mode? This will disable all actions.')">
+                        <button type="button" class="btn btn-warning btn-sm w-100 text-start" onclick="Swal.fire({title: 'View-Only Mode?', text: 'Set user to view-only mode? This will disable all actions.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ffc107', cancelButtonColor: '#6c757d', confirmButtonText: 'Yes, set view-only!'}).then((result) => {if (result.isConfirmed) { document.getElementById('restrictionType').value = 'view_only'; document.getElementById('quickRestrictForm').submit(); }});">
                             <i class="bi bi-eye"></i> View-Only Mode
                         </button>
                     </div>

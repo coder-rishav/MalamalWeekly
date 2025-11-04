@@ -69,12 +69,12 @@
             {% endif %}
         </div>
         
-        <form method="post">
+        <form method="post" id="autoWinnerForm">
             {% csrf_token %}
             <input type="hidden" name="selection_method" value="auto">
             <div class="text-center">
-                <button type="submit" class="btn btn-success btn-lg" 
-                        onclick="return confirm('Generate random winning combination and select winner(s) automatically? This ensures fair play.')">
+                <button type="button" class="btn btn-success btn-lg" 
+                        onclick="Swal.fire({title: 'Generate Random Winner?', text: 'Generate random winning combination and select winner(s) automatically? This ensures fair play.', icon: 'question', showCancelButton: true, confirmButtonColor: '#28a745', cancelButtonColor: '#d33', confirmButtonText: 'Yes, generate!'}).then((result) => {if (result.isConfirmed) document.getElementById('autoWinnerForm').submit();});">
                     <i class="bi bi-shuffle"></i> Generate Random Winner (Fair System)
                 </button>
             </div>
@@ -127,8 +127,8 @@
             </div>
             
             <div class="text-center mt-3">
-                <button type="submit" class="btn btn-warning" 
-                        onclick="return confirm('Are you sure you want to manually select this winner? Consider using automatic selection for fairness.')">
+                <button type="button" class="btn btn-warning" 
+                        onclick="Swal.fire({title: 'Manually Select Winner?', text: 'Are you sure you want to manually select this winner? Consider using automatic selection for fairness.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ffc107', cancelButtonColor: '#6c757d', confirmButtonText: 'Yes, declare winner!'}).then((result) => {if (result.isConfirmed) this.closest('form').submit();});">
                     <i class="bi bi-person-check"></i> Manually Declare Winner
                 </button>
             </div>

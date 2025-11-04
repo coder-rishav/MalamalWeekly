@@ -10,7 +10,7 @@
         <div>
             <a href="{% url 'custom_admin:refresh_exchange_rates' %}" 
                class="btn btn-success me-2"
-               onclick="event.preventDefault(); if(confirm('Fetch latest exchange rates from live API? This will update rates for all active currencies.')) { window.location.href = this.href; }">
+               onclick="event.preventDefault(); Swal.fire({title: 'Refresh Exchange Rates?', text: 'Fetch latest exchange rates from live API? This will update rates for all active currencies.', icon: 'question', showCancelButton: true, confirmButtonColor: '#28a745', cancelButtonColor: '#d33', confirmButtonText: 'Yes, refresh rates!'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
                 <i class="bi bi-arrow-clockwise me-1"></i>Refresh Rates from API
             </a>
             <a href="{% url 'custom_admin:exchange_rate_create' %}" class="btn btn-primary">
@@ -180,7 +180,7 @@
                                     <a href="{% url 'custom_admin:exchange_rate_delete' rate.id %}" 
                                        class="btn btn-sm btn-outline-danger" 
                                        title="Delete"
-                                       onclick="return confirm('Are you sure you want to delete this exchange rate?');">
+                                       onclick="event.preventDefault(); Swal.fire({title: 'Delete Exchange Rate?', text: 'Are you sure you want to delete the rate from {{ rate.from_currency.code }} to {{ rate.to_currency.code }}?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Yes, delete it!'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </div>

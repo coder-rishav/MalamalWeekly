@@ -211,7 +211,12 @@
         const toCurrency = document.getElementById('to_currency').value;
         
         if (fromCurrency && toCurrency && fromCurrency === toCurrency) {
-            alert('From and To currencies cannot be the same!');
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Selection',
+                text: 'From and To currencies cannot be the same!',
+                confirmButtonColor: '#667eea'
+            });
             document.getElementById('to_currency').value = '';
         }
     }
@@ -234,7 +239,12 @@
         
         if (fromCurrency === toCurrency) {
             e.preventDefault();
-            alert('From and To currencies cannot be the same!');
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Selection',
+                text: 'From and To currencies cannot be the same!',
+                confirmButtonColor: '#667eea'
+            });
             return false;
         }
     });

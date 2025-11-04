@@ -1649,6 +1649,7 @@ def currencies_list(request):
         'currencies': currencies,
         'total_currencies': currencies.count(),
         'active_currencies': currencies.filter(is_active=True).count(),
+        'inactive_currencies': currencies.filter(is_active=False).count(),
     }
     
     return render(request, 'custom_admin/currencies_list.html', context)

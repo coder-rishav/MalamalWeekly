@@ -50,7 +50,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">Inactive Currencies</h6>
-                            <h3 class="mb-0 text-secondary">{{ total_currencies|add:"-"|add:active_currencies }}</h3>
+                            <h3 class="mb-0 text-secondary">{{ inactive_currencies }}</h3>
                         </div>
                         <div class="icon-box bg-secondary bg-opacity-10 text-secondary">
                             <i class="bi bi-x-circle fs-2"></i>
@@ -133,7 +133,7 @@
                                     <a href="{% url 'custom_admin:currency_toggle_status' currency.id %}" 
                                        class="btn btn-sm btn-outline-{% if currency.is_active %}secondary{% else %}success{% endif %}" 
                                        title="{% if currency.is_active %}Deactivate{% else %}Activate{% endif %}"
-                                       onclick="return confirm('Are you sure you want to {% if currency.is_active %}deactivate{% else %}activate{% endif %} this currency?');">
+                                       onclick="event.preventDefault(); Swal.fire({title: '{% if currency.is_active %}Deactivate{% else %}Activate{% endif %} Currency?', text: 'Are you sure you want to {% if currency.is_active %}deactivate{% else %}activate{% endif %} {{ currency.code }}?', icon: 'question', showCancelButton: true, confirmButtonColor: '{% if currency.is_active %}#6c757d{% else %}#28a745{% endif %}', cancelButtonColor: '#d33', confirmButtonText: 'Yes, {% if currency.is_active %}deactivate{% else %}activate{% endif %} it!'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
                                         <i class="bi bi-{% if currency.is_active %}toggle-on{% else %}toggle-off{% endif %}"></i>
                                     </a>
                                 </div>
