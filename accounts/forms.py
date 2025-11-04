@@ -57,23 +57,26 @@ class KYCSubmissionForm(forms.ModelForm):
         widgets = {
             'full_name': forms.TextInput(attrs={
                 'class': 'form-control', 
-                'placeholder': 'Full Name as per ID'
+                'placeholder': 'Full Name as per ID',
+                'required': True
             }),
             'aadhar_number': forms.TextInput(attrs={
                 'class': 'form-control', 
                 'placeholder': '1234 5678 9012',
-                'maxlength': '12'
+                'maxlength': '12',
+                'required': True
             }),
             'pan_number': forms.TextInput(attrs={
                 'class': 'form-control', 
                 'placeholder': 'ABCDE1234F',
                 'maxlength': '10',
-                'style': 'text-transform: uppercase'
+                'style': 'text-transform: uppercase',
+                'required': True
             }),
-            'aadhar_front': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-            'aadhar_back': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-            'pan_card': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-            'selfie_with_id': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'aadhar_front': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*', 'required': True}),
+            'aadhar_back': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*', 'required': True}),
+            'pan_card': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*', 'required': True}),
+            'selfie_with_id': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*', 'required': True}),
         }
         help_texts = {
             'aadhar_number': 'Enter 12-digit Aadhar number',
@@ -81,25 +84,74 @@ class KYCSubmissionForm(forms.ModelForm):
             'selfie_with_id': 'Upload a clear selfie holding your Aadhar or PAN card',
         }
     
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Mark all fields as required
+        self.fields['full_name'].required = True
+        self.fields['aadhar_number'].required = True
+        self.fields['pan_number'].required = True
+        
+        # For file fields, only require them if they haven't been uploaded yet
+        if not self.instance.aadhar_front:
+            self.fields['aadhar_front'].required = True
+        if not self.instance.aadhar_back:
+            self.fields['aadhar_back'].required = True
+        if not self.instance.pan_card:
+            self.fields['pan_card'].required = True
+        if not self.instance.selfie_with_id:
+            self.fields['selfie_with_id'].required = True
+    
+    def clean_full_name(self):
+        full_name = self.cleaned_data.get('full_name')
+        if not full_name or not full_name.strip():
+            raise forms.ValidationError('Full name is required')
+        return full_name.strip()
+    
     def clean_aadhar_number(self):
         aadhar = self.cleaned_data.get('aadhar_number')
-        if aadhar:
-            # Remove spaces
-            aadhar = aadhar.replace(' ', '')
-            if not aadhar.isdigit() or len(aadhar) != 12:
-                raise forms.ValidationError('Aadhar number must be exactly 12 digits')
+        if not aadhar:
+            raise forms.ValidationError('Aadhar number is required')
+        # Remove spaces
+        aadhar = aadhar.replace(' ', '')
+        if not aadhar.isdigit() or len(aadhar) != 12:
+            raise forms.ValidationError('Aadhar number must be exactly 12 digits')
         return aadhar
     
     def clean_pan_number(self):
         pan = self.cleaned_data.get('pan_number')
-        if pan:
-            pan = pan.upper()
-            if len(pan) != 10:
-                raise forms.ValidationError('PAN number must be exactly 10 characters')
-            # Basic PAN format validation: ABCDE1234F
-            if not (pan[:5].isalpha() and pan[5:9].isdigit() and pan[9].isalpha()):
-                raise forms.ValidationError('Invalid PAN format. Format should be: ABCDE1234F')
+        if not pan:
+            raise forms.ValidationError('PAN number is required')
+        pan = pan.upper().strip()
+        if len(pan) != 10:
+            raise forms.ValidationError('PAN number must be exactly 10 characters')
+        # Basic PAN format validation: ABCDE1234F
+        if not (pan[:5].isalpha() and pan[5:9].isdigit() and pan[9].isalpha()):
+            raise forms.ValidationError('Invalid PAN format. Format should be: ABCDE1234F')
         return pan
+    
+    def clean_aadhar_front(self):
+        aadhar_front = self.cleaned_data.get('aadhar_front')
+        if not aadhar_front and not self.instance.aadhar_front:
+            raise forms.ValidationError('Aadhar front image is required')
+        return aadhar_front
+    
+    def clean_aadhar_back(self):
+        aadhar_back = self.cleaned_data.get('aadhar_back')
+        if not aadhar_back and not self.instance.aadhar_back:
+            raise forms.ValidationError('Aadhar back image is required')
+        return aadhar_back
+    
+    def clean_pan_card(self):
+        pan_card = self.cleaned_data.get('pan_card')
+        if not pan_card and not self.instance.pan_card:
+            raise forms.ValidationError('PAN card image is required')
+        return pan_card
+    
+    def clean_selfie_with_id(self):
+        selfie = self.cleaned_data.get('selfie_with_id')
+        if not selfie and not self.instance.selfie_with_id:
+            raise forms.ValidationError('Selfie with ID is required')
+        return selfie
 
 
 class UserUpdateForm(forms.ModelForm):

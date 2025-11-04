@@ -186,6 +186,8 @@ def submit_kyc(request):
             
             messages.success(request, 'Your KYC documents have been submitted successfully. We will review them within 24-48 hours.')
             return redirect('accounts:profile')
+        else:
+            messages.error(request, 'Please correct the errors below and fill all required fields.')
     else:
         form = KYCSubmissionForm(instance=profile)
     

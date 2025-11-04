@@ -37,7 +37,11 @@
                         <label class="form-label">Full Name (as per ID) <span class="text-danger">*</span></label>
                         {{ form.full_name }}
                         {% if form.full_name.errors %}
-                            <div class="text-danger">{{ form.full_name.errors }}</div>
+                            <div class="text-danger mt-1">
+                                {% for error in form.full_name.errors %}
+                                    <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small><br>
+                                {% endfor %}
+                            </div>
                         {% endif %}
                     </div>
 
@@ -46,7 +50,11 @@
                             <label class="form-label">Aadhar Number <span class="text-danger">*</span></label>
                             {{ form.aadhar_number }}
                             {% if form.aadhar_number.errors %}
-                                <div class="text-danger">{{ form.aadhar_number.errors }}</div>
+                                <div class="text-danger mt-1">
+                                    {% for error in form.aadhar_number.errors %}
+                                        <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small><br>
+                                    {% endfor %}
+                                </div>
                             {% endif %}
                             <small class="form-text text-muted">{{ form.aadhar_number.help_text }}</small>
                         </div>
@@ -54,7 +62,11 @@
                             <label class="form-label">PAN Number <span class="text-danger">*</span></label>
                             {{ form.pan_number }}
                             {% if form.pan_number.errors %}
-                                <div class="text-danger">{{ form.pan_number.errors }}</div>
+                                <div class="text-danger mt-1">
+                                    {% for error in form.pan_number.errors %}
+                                        <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small><br>
+                                    {% endfor %}
+                                </div>
                             {% endif %}
                             <small class="form-text text-muted">{{ form.pan_number.help_text }}</small>
                         </div>
@@ -75,7 +87,11 @@
                             {% endif %}
                             {{ form.aadhar_front }}
                             {% if form.aadhar_front.errors %}
-                                <div class="text-danger">{{ form.aadhar_front.errors }}</div>
+                                <div class="text-danger mt-1">
+                                    {% for error in form.aadhar_front.errors %}
+                                        <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small><br>
+                                    {% endfor %}
+                                </div>
                             {% endif %}
                             <small class="form-text text-muted">Upload clear photo of front side</small>
                         </div>
@@ -90,7 +106,11 @@
                             {% endif %}
                             {{ form.aadhar_back }}
                             {% if form.aadhar_back.errors %}
-                                <div class="text-danger">{{ form.aadhar_back.errors }}</div>
+                                <div class="text-danger mt-1">
+                                    {% for error in form.aadhar_back.errors %}
+                                        <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small><br>
+                                    {% endfor %}
+                                </div>
                             {% endif %}
                             <small class="form-text text-muted">Upload clear photo of back side</small>
                         </div>
@@ -107,7 +127,11 @@
                             {% endif %}
                             {{ form.pan_card }}
                             {% if form.pan_card.errors %}
-                                <div class="text-danger">{{ form.pan_card.errors }}</div>
+                                <div class="text-danger mt-1">
+                                    {% for error in form.pan_card.errors %}
+                                        <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small><br>
+                                    {% endfor %}
+                                </div>
                             {% endif %}
                             <small class="form-text text-muted">Upload clear photo of PAN card</small>
                         </div>
@@ -122,7 +146,11 @@
                             {% endif %}
                             {{ form.selfie_with_id }}
                             {% if form.selfie_with_id.errors %}
-                                <div class="text-danger">{{ form.selfie_with_id.errors }}</div>
+                                <div class="text-danger mt-1">
+                                    {% for error in form.selfie_with_id.errors %}
+                                        <small><i class="bi bi-exclamation-circle"></i> {{ error }}</small><br>
+                                    {% endfor %}
+                                </div>
                             {% endif %}
                             <small class="form-text text-muted">{{ form.selfie_with_id.help_text }}</small>
                         </div>
