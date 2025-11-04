@@ -15,6 +15,16 @@ class UserProfile(models.Model):
     postal_code = models.CharField(max_length=10, blank=True, null=True)
     country = models.CharField(max_length=100, default='India')
     
+    # Currency Preference
+    preferred_currency = models.ForeignKey(
+        'transactions.Currency',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users',
+        help_text="User's preferred currency for display and transactions"
+    )
+    
     # Wallet
     wallet_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     total_deposits = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

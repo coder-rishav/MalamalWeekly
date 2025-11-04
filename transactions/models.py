@@ -4,6 +4,9 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 import json
 
+# Import currency models
+from .currency_models import Currency, ExchangeRate, CurrencyConversionLog
+
 
 class PaymentGateway(models.Model):
     """Flexible payment gateway configuration system"""

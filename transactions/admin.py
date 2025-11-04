@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.utils import timezone
 from .models import Transaction, DepositRequest, WithdrawalRequest
 
+# Import currency admin configurations
+from .currency_admin import CurrencyAdmin, ExchangeRateAdmin, CurrencyConversionLogAdmin
+
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
