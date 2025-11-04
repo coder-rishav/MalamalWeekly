@@ -124,18 +124,18 @@
                                 <a href="{% url 'custom_admin:toggle_gateway_status' gateway.id %}" 
                                    class="btn btn-{{ gateway.is_active|yesno:'secondary,success' }}" 
                                    title="{{ gateway.is_active|yesno:'Deactivate,Activate' }}"
-                                   onclick="return confirm('Are you sure?')">
+                                   onclick="event.preventDefault(); Swal.fire({title: '{{ gateway.is_active|yesno:'Deactivate,Activate' }} Gateway?', text: 'Are you sure you want to {{ gateway.is_active|yesno:'deactivate,activate' }} this gateway?', icon: 'question', showCancelButton: true, confirmButtonColor: '#667eea', cancelButtonColor: '#d33'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
                                     <i class="bi bi-power"></i>
                                 </a>
                                 <a href="{% url 'custom_admin:toggle_gateway_mode' gateway.id %}" 
                                    class="btn btn-warning" 
                                    title="Switch to {{ gateway.mode|yesno:'Live,Test' }} Mode"
-                                   onclick="return confirm('Switch to {{ gateway.mode|yesno:'Live,Test' }} mode?')">
+                                   onclick="event.preventDefault(); Swal.fire({title: 'Switch Mode?', text: 'Switch to {{ gateway.mode|yesno:'Live,Test' }} mode?', icon: 'question', showCancelButton: true, confirmButtonColor: '#ffc107', cancelButtonColor: '#d33'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
                                     <i class="bi bi-arrow-repeat"></i>
                                 </a>
                                 <a href="{% url 'custom_admin:delete_payment_gateway' gateway.id %}" 
                                    class="btn btn-danger" title="Delete"
-                                   onclick="return confirm('Delete this gateway? This cannot be undone.')">
+                                   onclick="event.preventDefault(); Swal.fire({title: 'Delete Gateway?', text: 'Delete this gateway? This cannot be undone.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Yes, delete it!'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </div>

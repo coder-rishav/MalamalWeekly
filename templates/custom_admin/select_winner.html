@@ -139,3 +139,40 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+// Replace all confirm dialogs with SweetAlert2
+document.querySelectorAll('[onclick*="confirm"]').forEach(element => {
+    const originalOnclick = element.getAttribute('onclick');
+    const confirmMatch = originalOnclick.match(/confirm\('([^']+)'\)/);
+    
+    if (confirmMatch) {
+        const confirmText = confirmMatch[1];
+        element.removeAttribute('onclick');
+        
+        element.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            Swal.fire({
+                title: 'Confirm Action',
+                text: confirmText,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, proceed!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (this.tagName === 'BUTTON') {
+                        this.form.submit();
+                    } else {
+                        window.location.href = this.href;
+                    }
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -69,11 +69,12 @@
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'custom_admin:approve_withdrawal' request.id %}" 
                                    class="btn btn-success"
-                                   onclick="return confirm('Approve withdrawal of ₹{{ request.amount }} for {{ request.user.username }}?')">
+                                   onclick="event.preventDefault(); Swal.fire({title: 'Approve Withdrawal?', html: 'Approve withdrawal of <strong>₹{{ request.amount }}</strong> for <strong>{{ request.user.username }}</strong>?', icon: 'question', showCancelButton: true, confirmButtonColor: '#28a745', cancelButtonColor: '#d33', confirmButtonText: 'Yes, approve it!'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
                                     <i class="bi bi-check-circle"></i> Approve
                                 </a>
                                 <a href="{% url 'custom_admin:reject_withdrawal' request.id %}" 
-                                   class="btn btn-danger">
+                                   class="btn btn-danger"
+                                   onclick="event.preventDefault(); Swal.fire({title: 'Reject Withdrawal?', text: 'Are you sure you want to reject this withdrawal request?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Yes, reject it'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
                                     <i class="bi bi-x-circle"></i> Reject
                                 </a>
                             </div>

@@ -180,7 +180,12 @@ document.getElementById('continueToGateway').addEventListener('click', function(
     selectedAmount = parseFloat(amountInput.value);
     
     if (!selectedAmount || selectedAmount < 10) {
-        alert('Please enter a valid amount (minimum ₹10)');
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Amount',
+            text: 'Please enter a valid amount (minimum ₹10)',
+            confirmButtonColor: '#667eea'
+        });
         return;
     }
     
@@ -211,7 +216,12 @@ document.querySelectorAll('.gateway-card').forEach(card => {
         
         // Validate amount
         if (selectedAmount < minAmount || selectedAmount > maxAmount) {
-            alert(`Amount must be between ₹${minAmount} and ₹${maxAmount} for this gateway`);
+            Swal.fire({
+                icon: 'error',
+                title: 'Amount Out of Range',
+                text: `Amount must be between ₹${minAmount} and ₹${maxAmount} for this gateway`,
+                confirmButtonColor: '#667eea'
+            });
             return;
         }
         
@@ -236,10 +246,25 @@ document.querySelectorAll('.gateway-card').forEach(card => {
 });
 
 function initiatePayment(gatewayId) {
-    if (!confirm('Proceed with payment of ' + document.getElementById('summaryTotal').textContent + '?')) {
-        return;
-    }
-    
+    Swal.fire({
+        title: 'Confirm Payment',
+        html: `Proceed with payment of <strong>${document.getElementById('summaryTotal').textContent}</strong>?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#667eea',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, proceed!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (!result.isConfirmed) {
+            return;
+        }
+        
+        processPayment(gatewayId);
+    });
+}
+
+function processPayment(gatewayId) {
     // Show loading
     const loadingHtml = '<div class="text-center"><div class="spinner-border text-success" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Processing payment...</p></div>';
     document.getElementById('step2').innerHTML = loadingHtml;
@@ -266,17 +291,35 @@ function initiatePayment(gatewayId) {
             } else if (data.provider === 'payu') {
                 openPayUCheckout(data);
             } else {
-                alert('Payment gateway integration pending for ' + data.provider);
-                window.location.reload();
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Integration Pending',
+                    text: 'Payment gateway integration pending for ' + data.provider,
+                    confirmButtonColor: '#667eea'
+                }).then(() => {
+                    window.location.reload();
+                });
             }
         } else {
-            alert('Error: ' + data.error);
-            window.location.reload();
+            Swal.fire({
+                icon: 'error',
+                title: 'Payment Error',
+                text: data.error,
+                confirmButtonColor: '#667eea'
+            }).then(() => {
+                window.location.reload();
+            });
         }
     })
     .catch(error => {
-        alert('Error: ' + error);
-        window.location.reload();
+        Swal.fire({
+            icon: 'error',
+            title: 'Request Failed',
+            text: 'An error occurred while processing your request',
+            confirmButtonColor: '#667eea'
+        }).then(() => {
+            window.location.reload();
+        });
     });
 }
 
@@ -310,7 +353,12 @@ function openRazorpayCheckout(orderData) {
 
 function openStripeCheckout(orderData) {
     // Stripe integration would go here
-    alert('Stripe integration: Use publishable key and client secret to create payment form');
+    Swal.fire({
+        icon: 'info',
+        title: 'Stripe Integration',
+        text: 'Stripe payment form will be integrated here',
+        confirmButtonColor: '#667eea'
+    });
 }
 
 function openPayUCheckout(orderData) {
