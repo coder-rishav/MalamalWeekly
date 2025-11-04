@@ -42,13 +42,33 @@
             <p class="mb-0">Malamal Weekly</p>
         </div>
         <div class="login-body">
-            <div id="django-messages" style="display: none;">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div data-message="{{ message }}" data-tags="{{ message.tags }}"></div>
-                    {% endfor %}
-                {% endif %}
-            </div>
+            {% if messages %}
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const messages = [
+                            {% for message in messages %}
+                            {
+                                text: "{{ message|escapejs }}",
+                                tags: "{{ message.tags }}"
+                            }{% if not forloop.last %},{% endif %}
+                            {% endfor %}
+                        ];
+                        
+                        messages.forEach(function(msg) {
+                            let toastrType = 'info';
+                            if (msg.tags.includes('success')) {
+                                toastrType = 'success';
+                            } else if (msg.tags.includes('error') || msg.tags.includes('danger')) {
+                                toastrType = 'error';
+                            } else if (msg.tags.includes('warning')) {
+                                toastrType = 'warning';
+                            }
+                            
+                            toastr[toastrType](msg.text);
+                        });
+                    });
+                </script>
+            {% endif %}
 
             <form method="post">
                 {% csrf_token %}
@@ -99,29 +119,6 @@
             "hideMethod": "fadeOut"
         };
         
-        document.addEventListener('DOMContentLoaded', function() {
-            const messagesContainer = document.getElementById('django-messages');
-            if (messagesContainer) {
-                const messages = messagesContainer.querySelectorAll('[data-message]');
-                messages.forEach(function(msg) {
-                    const message = msg.getAttribute('data-message');
-                    const tags = msg.getAttribute('data-tags');
-                    
-                    let toastrType = 'info';
-                    if (tags.includes('success')) {
-                        toastrType = 'success';
-                    } else if (tags.includes('error') || tags.includes('danger')) {
-                        toastrType = 'error';
-                    } else if (tags.includes('warning')) {
-                        toastrType = 'warning';
-                    } else if (tags.includes('info')) {
-                        toastrType = 'info';
-                    }
-                    
-                    toastr[toastrType](message);
-                });
-            }
-        });
     </script>
 </body>
 </html>
