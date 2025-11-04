@@ -1223,11 +1223,21 @@ def cms_pages_list(request):
         is_active = filter_status == 'active'
         pages = pages.filter(is_active=is_active)
     
+    # Calculate statistics
+    all_pages = Page.objects.all()
+    active_pages = all_pages.filter(is_active=True).count()
+    quick_links_count = all_pages.filter(footer_section='quick_links').count()
+    information_count = all_pages.filter(footer_section='information').count()
+    
     context = {
         'pages': pages,
         'search_query': search_query,
         'filter_section': filter_section,
         'filter_status': filter_status,
+        'total_pages': all_pages.count(),
+        'active_pages': active_pages,
+        'quick_links_count': quick_links_count,
+        'information_count': information_count,
     }
     return render(request, 'custom_admin/cms_pages_list.html', context)
 

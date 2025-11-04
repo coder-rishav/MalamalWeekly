@@ -20,7 +20,7 @@
         <div class="card border-primary">
             <div class="card-body">
                 <h6 class="text-muted">Total Pages</h6>
-                <h2 class="text-primary">{{ pages.count }}</h2>
+                <h2 class="text-primary">{{ total_pages }}</h2>
                 <small><i class="bi bi-file-text"></i> All content pages</small>
             </div>
         </div>
@@ -29,7 +29,7 @@
         <div class="card border-success">
             <div class="card-body">
                 <h6 class="text-muted">Active Pages</h6>
-                <h2 class="text-success">{{ pages|dictsort:"is_active"|slice:":"-1|length }}</h2>
+                <h2 class="text-success">{{ active_pages }}</h2>
                 <small><i class="bi bi-check-circle"></i> Published & visible</small>
             </div>
         </div>
@@ -38,7 +38,7 @@
         <div class="card border-info">
             <div class="card-body">
                 <h6 class="text-muted">Quick Links</h6>
-                <h2 class="text-info">{{ pages|dictsort:"footer_section"|slice:":"|length }}</h2>
+                <h2 class="text-info">{{ quick_links_count }}</h2>
                 <small><i class="bi bi-link-45deg"></i> Footer quick links</small>
             </div>
         </div>
@@ -47,7 +47,7 @@
         <div class="card border-warning">
             <div class="card-body">
                 <h6 class="text-muted">Information</h6>
-                <h2 class="text-warning">{{ pages|dictsort:"footer_section"|slice:":"-1|length }}</h2>
+                <h2 class="text-warning">{{ information_count }}</h2>
                 <small><i class="bi bi-info-circle"></i> Info pages</small>
             </div>
         </div>
