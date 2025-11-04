@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'games',
     'transactions',
     'custom_admin',
+    'cms',
 ]
 
 MIDDLEWARE = [
@@ -74,6 +75,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
                 'custom_admin.context_processors.admin_context',
+                'cms.context_processors.cms_context',
             ],
         },
     },

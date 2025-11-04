@@ -27,6 +27,7 @@ urlpatterns = [
     path('', include('games.urls')),
     path('accounts/', include('accounts.urls')),
     path('transactions/', include('transactions.urls')),
+    path('page/', include('cms.urls')),  # CMS pages
 ]
 
 # Custom error handlers

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page.title }} - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Page Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold mb-3" style="background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    {{ page.title }}
+                </h1>
+                {% if page.meta_description %}
+                <p class="lead text-muted">{{ page.meta_description }}</p>
+                {% endif %}
+                <hr class="w-25 mx-auto" style="height: 3px; background: var(--gold-gradient);">
+            </div>
+            
+            <!-- Page Content -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-5">
+                    <div class="cms-content">
+                        {{ page.content|safe }}
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-muted small">
+                        <i class="bi bi-clock"></i> Last updated: {{ page.updated_at|date:"F d, Y" }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Back Button -->
+            <div class="text-center mt-4">
+                <a href="{% url 'games:dashboard' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .cms-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #333;
+    }
+    
+    .cms-content h2 {
+        color: #667eea;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .cms-content h3 {
+        color: #764ba2;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .cms-content p {
+        margin-bottom: 1.25rem;
+    }
+    
+    .cms-content ul, .cms-content ol {
+        margin-bottom: 1.25rem;
+        padding-left: 2rem;
+    }
+    
+    .cms-content li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .cms-content a {
+        color: #667eea;
+        text-decoration: none;
+        border-bottom: 1px dotted #667eea;
+    }
+    
+    .cms-content a:hover {
+        color: #764ba2;
+        border-bottom-style: solid;
+    }
+    
+    .cms-content blockquote {
+        border-left: 4px solid #667eea;
+        padding-left: 1.5rem;
+        margin: 1.5rem 0;
+        font-style: italic;
+        color: #555;
+    }
+    
+    .cms-content code {
+        background: #f8f9fa;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        color: #e83e8c;
+    }
+    
+    .cms-content table {
+        width: 100%;
+        margin-bottom: 1.25rem;
+        border-collapse: collapse;
+    }
+    
+    .cms-content table th,
+    .cms-content table td {
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+    }
+    
+    .cms-content table th {
+        background: #f8f9fa;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}

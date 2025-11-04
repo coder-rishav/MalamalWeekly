@@ -615,15 +615,16 @@
         <div class="container">
             <div class="row g-4">
                 <div class="col-lg-4 col-md-6">
-                    <h5><i class="bi bi-trophy-fill"></i> Malamal Weekly</h5>
+                    <h5><i class="bi bi-trophy-fill"></i> {{ site_settings.site_name }}</h5>
                     <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.8;">
-                        Your trusted online lottery and gaming platform. Experience the thrill of winning with secure, fair, and exciting games.
+                        {{ site_settings.description }}
                     </p>
                     <div class="social-links mt-4">
-                        <a href="#" title="Facebook"><i class="bi bi-facebook"></i></a>
-                        <a href="#" title="Twitter"><i class="bi bi-twitter"></i></a>
-                        <a href="#" title="Instagram"><i class="bi bi-instagram"></i></a>
-                        <a href="#" title="YouTube"><i class="bi bi-youtube"></i></a>
+                        {% for social in social_links %}
+                        <a href="{{ social.url }}" title="{{ social.get_platform_display }}" target="_blank" rel="noopener">
+                            <i class="{{ social.icon_class|default:social.get_default_icon }}"></i>
+                        </a>
+                        {% endfor %}
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-6">
@@ -633,16 +634,17 @@
                         <li><a href="{% url 'games:games_list' %}"><i class="bi bi-chevron-right"></i> Games</a></li>
                         <li><a href="{% url 'games:winners_list' %}"><i class="bi bi-chevron-right"></i> Winners</a></li>
                         <li><a href="{% url 'games:leaderboard' %}"><i class="bi bi-chevron-right"></i> Leaderboard</a></li>
+                        {% for page in footer_quick_links %}
+                        <li><a href="{% url 'cms:page' page.slug %}"><i class="bi bi-chevron-right"></i> {{ page.title }}</a></li>
+                        {% endfor %}
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <h6>Information</h6>
                     <ul class="list-unstyled">
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> About Us</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> How to Play</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Terms & Conditions</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Privacy Policy</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Responsible Gaming</a></li>
+                        {% for page in footer_information_pages %}
+                        <li><a href="{% url 'cms:page' page.slug %}"><i class="bi bi-chevron-right"></i> {{ page.title }}</a></li>
+                        {% endfor %}
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6">
@@ -650,16 +652,16 @@
                     <ul class="list-unstyled">
                         <li style="margin-bottom: 1rem; color: rgba(255, 255, 255, 0.8);">
                             <i class="bi bi-envelope-fill"></i> 
-                            <a href="mailto:support@malamalweekly.com" style="color: rgba(255, 255, 255, 0.8);">support@malamalweekly.com</a>
+                            <a href="mailto:{{ site_settings.contact_email }}" style="color: rgba(255, 255, 255, 0.8);">{{ site_settings.contact_email }}</a>
                         </li>
                         <li style="margin-bottom: 1rem; color: rgba(255, 255, 255, 0.8);">
-                            <i class="bi bi-telephone-fill"></i> +91 1234567890
+                            <i class="bi bi-telephone-fill"></i> {{ site_settings.contact_phone }}
                         </li>
                         <li style="margin-bottom: 1rem; color: rgba(255, 255, 255, 0.8);">
-                            <i class="bi bi-clock-fill"></i> 24/7 Support
+                            <i class="bi bi-clock-fill"></i> {{ site_settings.support_hours }}
                         </li>
                         <li style="color: rgba(255, 255, 255, 0.8);">
-                            <i class="bi bi-geo-alt-fill"></i> Mumbai, India
+                            <i class="bi bi-geo-alt-fill"></i> {{ site_settings.contact_address }}
                         </li>
                     </ul>
                 </div>
@@ -668,12 +670,12 @@
             <div class="row">
                 <div class="col-md-6 text-center text-md-start">
                     <p style="color: rgba(255, 255, 255, 0.7); margin: 0;">
-                        &copy; 2025 Malamal Weekly. All rights reserved.
+                        {{ site_settings.footer_copyright }}
                     </p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
                     <p style="color: rgba(255, 255, 255, 0.7); margin: 0;">
-                        <i class="bi bi-shield-check"></i> Secure & Licensed Platform
+                        <i class="bi bi-shield-check"></i> {{ site_settings.footer_tagline }}
                     </p>
                 </div>
             </div>
