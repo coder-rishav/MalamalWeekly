@@ -23,6 +23,7 @@
 .masonry-item-2 { grid-row-end: span 35; } /* Medium cards */
 .masonry-item-3 { grid-row-end: span 50; } /* Large cards */
 .masonry-item-4 { grid-row-end: span 70; } /* Extra large cards */
+.masonry-item-chart { grid-row-end: span 45; } /* Chart cards with proper height */
 
 @media (min-width: 768px) {
     .masonry-container {
@@ -203,7 +204,7 @@
                 <h5 class="mb-0"><i class="bi bi-graph-up"></i> Transaction Trends (Last 7 Days)</h5>
             </div>
             <div class="card-body">
-                <canvas id="transactionChart" height="80"></canvas>
+                <canvas id="transactionChart" style="height: 300px; max-height: 300px;"></canvas>
             </div>
         </div>
     </div>
@@ -215,7 +216,7 @@
                 <h5 class="mb-0"><i class="bi bi-pie-chart"></i> KYC Status</h5>
             </div>
             <div class="card-body">
-                <canvas id="kycChart"></canvas>
+                <canvas id="kycChart" style="max-height: 250px;"></canvas>
                 <div class="mt-3">
                     <small class="d-block"><span class="badge bg-warning">{{ kyc_pending }}</span> Pending</small>
                     <small class="d-block"><span class="badge bg-success">{{ kyc_verified }}</span> Verified</small>
@@ -448,7 +449,7 @@ const transactionChart = new Chart(transactionCtx, {
     },
     options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 position: 'top',
@@ -490,7 +491,7 @@ const kycChart = new Chart(kycCtx, {
     },
     options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: {
             legend: {
                 display: false
