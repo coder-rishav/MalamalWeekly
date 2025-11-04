@@ -77,6 +77,9 @@
                         </a>
                         <a class="nav-link {% if 'users' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:users_list' %}">
                             <i class="bi bi-people"></i> Users
+                            {% if total_users_count %}
+                            <span class="badge bg-info text-dark">{{ total_users_count }}</span>
+                            {% endif %}
                         </a>
                         <a class="nav-link {% if 'deposit' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:deposit_requests' %}">
                             <i class="bi bi-cash-stack"></i> Deposits
@@ -98,6 +101,9 @@
                         </a>
                         <a class="nav-link {% if 'games' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:games_management' %}">
                             <i class="bi bi-controller"></i> Games
+                            {% if active_games_count %}
+                            <span class="badge bg-success text-white">{{ active_games_count }}</span>
+                            {% endif %}
                         </a>
                         <a class="nav-link {% if 'appeal' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:ban_appeals_list' %}?status=pending">
                             <i class="bi bi-envelope-exclamation"></i> Ban Appeals
@@ -107,6 +113,9 @@
                         </a>
                         <a class="nav-link {% if 'transaction' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:transactions_list' %}">
                             <i class="bi bi-receipt"></i> Transactions
+                            {% if recent_transactions_count %}
+                            <span class="badge bg-primary text-white">{{ recent_transactions_count }}</span>
+                            {% endif %}
                         </a>
                         <a class="nav-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:payment_gateways_list' %}">
                             <i class="bi bi-credit-card"></i> Payment Gateways
@@ -117,6 +126,9 @@
                         <small class="text-muted ps-3 mt-2 d-block" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Content Management</small>
                         <a class="nav-link {% if 'cms_pages' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:cms_pages_list' %}">
                             <i class="bi bi-file-text"></i> CMS Pages
+                            {% if total_cms_pages_count %}
+                            <span class="badge bg-secondary text-white">{{ total_cms_pages_count }}</span>
+                            {% endif %}
                         </a>
                         <a class="nav-link {% if 'cms_social' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:cms_social_links' %}">
                             <i class="bi bi-share"></i> Social Links
