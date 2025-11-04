@@ -342,7 +342,7 @@ function openRazorpayCheckout(orderData) {
         },
         modal: {
             ondismiss: function() {
-                window.location.href = '{% url "transactions:payment_failure" %}?transaction_id=' + orderData.transaction_id;
+                window.location.href = '{% url "transactions:payment_failure" %}?transaction_id=' + orderData.transaction_id + '&reason=Payment%20cancelled%20by%20user';
             }
         }
     };

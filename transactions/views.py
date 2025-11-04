@@ -135,7 +135,18 @@ def payment_success(request):
 def payment_failure(request):
     """Payment failure callback page"""
     transaction_id = request.GET.get('transaction_id')
-    reason = request.GET.get('reason', 'Payment failed')
+    reason = request.GET.get('reason', 'Payment cancelled by user')
+    
+    # Update transaction status to failed
+    if transaction_id:
+        try:
+            transaction = Transaction.objects.get(id=transaction_id)
+            if transaction.status == 'pending':
+                transaction.status = 'failed'
+                transaction.payment_status = reason
+                transaction.save()
+        except Transaction.DoesNotExist:
+            pass
     
     context = {
         'transaction_id': transaction_id,
@@ -257,6 +268,23 @@ def razorpay_webhook(request):
                     
                     if result['success']:
                         return JsonResponse({'status': 'success'})
+                
+            except Transaction.DoesNotExist:
+                pass
+        
+        elif event_type == 'payment.failed':
+            # Handle failed payment
+            payment_entity = data.get('payload', {}).get('payment', {}).get('entity', {})
+            order_id = payment_entity.get('order_id')
+            
+            try:
+                transaction = Transaction.objects.get(gateway_order_id=order_id)
+                
+                if transaction.status == 'pending':
+                    transaction.status = 'failed'
+                    transaction.payment_status = 'Payment failed at gateway'
+                    transaction.save()
+                    return JsonResponse({'status': 'failed_updated'})
                 
             except Transaction.DoesNotExist:
                 pass
