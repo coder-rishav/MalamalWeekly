@@ -11,7 +11,10 @@
                 <div class="row align-items-center">
                     <div class="col-md-6">
                         <h5><i class="bi bi-wallet2"></i> Current Wallet Balance</h5>
-                        <h2 class="text-primary mb-0">₹{{ wallet_balance }}</h2>
+                        <h2 class="text-primary mb-0">{{ currency_symbol }}{{ wallet_balance_display|floatformat:2 }}</h2>
+                        {% if user_currency and user_currency.code != 'INR' %}
+                            <small class="text-muted">(₹{{ wallet_balance|floatformat:2 }} INR)</small>
+                        {% endif %}
                     </div>
                     <div class="col-md-6 text-end">
                         <a href="{% url 'transactions:transaction_history' %}" class="btn btn-outline-primary">
@@ -33,22 +36,30 @@
                     <h5 class="mb-3">Step 1: Enter Amount</h5>
                     <div class="row">
                         <div class="col-md-8 mx-auto">
+                            {% if user_currency and user_currency.code != 'INR' %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> <strong>Currency Note:</strong> 
+                                Amounts shown in {{ user_currency.code }}. Payment will be processed in INR at current exchange rate.
+                            </div>
+                            {% endif %}
+                            
                             <div class="mb-3">
-                                <label class="form-label"><strong>Amount (₹)</strong></label>
+                                <label class="form-label"><strong>Amount ({{ currency_symbol }}{{ currency_code }})</strong></label>
                                 <input type="number" id="amount" class="form-control form-control-lg" 
-                                       placeholder="Enter amount" min="10" step="10" value="500">
-                                <small class="text-muted">Minimum: ₹10 | Maximum: ₹1,00,000</small>
+                                       placeholder="Enter amount" min="10" step="10" value="500"
+                                       data-currency="{{ currency_code }}">
+                                <small class="text-muted">Minimum: {{ currency_symbol }}10 | Maximum: {{ currency_symbol }}1,00,000</small>
                             </div>
                             
                             <!-- Quick Amount Buttons -->
                             <div class="mb-4">
                                 <label class="form-label"><strong>Quick Select:</strong></label>
                                 <div class="d-grid gap-2 d-md-flex">
-                                    <button type="button" class="btn btn-outline-primary quick-amount" data-amount="100">₹100</button>
-                                    <button type="button" class="btn btn-outline-primary quick-amount" data-amount="500">₹500</button>
-                                    <button type="button" class="btn btn-outline-primary quick-amount" data-amount="1000">₹1,000</button>
-                                    <button type="button" class="btn btn-outline-primary quick-amount" data-amount="2000">₹2,000</button>
-                                    <button type="button" class="btn btn-outline-primary quick-amount" data-amount="5000">₹5,000</button>
+                                    <button type="button" class="btn btn-outline-primary quick-amount" data-amount="100">{{ currency_symbol }}100</button>
+                                    <button type="button" class="btn btn-outline-primary quick-amount" data-amount="500">{{ currency_symbol }}500</button>
+                                    <button type="button" class="btn btn-outline-primary quick-amount" data-amount="1000">{{ currency_symbol }}1,000</button>
+                                    <button type="button" class="btn btn-outline-primary quick-amount" data-amount="2000">{{ currency_symbol }}2,000</button>
+                                    <button type="button" class="btn btn-outline-primary quick-amount" data-amount="5000">{{ currency_symbol }}5,000</button>
                                 </div>
                             </div>
                             
@@ -67,13 +78,13 @@
                     <div class="alert alert-info">
                         <div class="row align-items-center">
                             <div class="col-md-4">
-                                <strong>Amount:</strong> <span id="summaryAmount">₹0</span>
+                                <strong>Amount:</strong> <span id="summaryAmount">{{ currency_symbol }}0</span>
                             </div>
                             <div class="col-md-4">
-                                <strong>Gateway Fee:</strong> <span id="summaryFee">₹0</span>
+                                <strong>Gateway Fee:</strong> <span id="summaryFee">{{ currency_symbol }}0</span>
                             </div>
                             <div class="col-md-4">
-                                <strong>Total to Pay:</strong> <span id="summaryTotal" class="text-primary h5 mb-0">₹0</span>
+                                <strong>Total to Pay:</strong> <span id="summaryTotal" class="text-primary h5 mb-0">{{ currency_symbol }}0</span>
                             </div>
                         </div>
                     </div>
@@ -165,6 +176,8 @@
 <script>
 let selectedAmount = 500;
 let selectedGatewayId = null;
+const currencySymbol = '{{ currency_symbol|safe }}';
+const currencyCode = '{{ currency_code }}';
 
 // Quick amount buttons
 document.querySelectorAll('.quick-amount').forEach(button => {
@@ -183,16 +196,16 @@ document.getElementById('continueToGateway').addEventListener('click', function(
         Swal.fire({
             icon: 'warning',
             title: 'Invalid Amount',
-            text: 'Please enter a valid amount (minimum ₹10)',
+            text: `Please enter a valid amount (minimum ${currencySymbol}10)`,
             confirmButtonColor: '#667eea'
         });
         return;
     }
     
     // Update summary with selected amount (no fees yet until gateway is selected)
-    document.getElementById('summaryAmount').textContent = '₹' + selectedAmount.toFixed(2);
-    document.getElementById('summaryFee').textContent = '₹0.00';
-    document.getElementById('summaryTotal').textContent = '₹' + selectedAmount.toFixed(2);
+    document.getElementById('summaryAmount').textContent = currencySymbol + selectedAmount.toFixed(2);
+    document.getElementById('summaryFee').textContent = currencySymbol + '0.00';
+    document.getElementById('summaryTotal').textContent = currencySymbol + selectedAmount.toFixed(2);
     
     // Show step 2
     document.getElementById('step1').style.display = 'none';
@@ -219,7 +232,7 @@ document.querySelectorAll('.gateway-card').forEach(card => {
             Swal.fire({
                 icon: 'error',
                 title: 'Amount Out of Range',
-                text: `Amount must be between ₹${minAmount} and ₹${maxAmount} for this gateway`,
+                text: `Amount must be between ${currencySymbol}${minAmount} and ${currencySymbol}${maxAmount} for this gateway`,
                 confirmButtonColor: '#667eea'
             });
             return;
@@ -230,9 +243,9 @@ document.querySelectorAll('.gateway-card').forEach(card => {
         const total = selectedAmount + fee;
         
         // Update summary
-        document.getElementById('summaryAmount').textContent = '₹' + selectedAmount.toFixed(2);
-        document.getElementById('summaryFee').textContent = '₹' + fee.toFixed(2);
-        document.getElementById('summaryTotal').textContent = '₹' + total.toFixed(2);
+        document.getElementById('summaryAmount').textContent = currencySymbol + selectedAmount.toFixed(2);
+        document.getElementById('summaryFee').textContent = currencySymbol + fee.toFixed(2);
+        document.getElementById('summaryTotal').textContent = currencySymbol + total.toFixed(2);
         
         // Highlight selected
         document.querySelectorAll('.gateway-card').forEach(c => c.classList.remove('selected'));
@@ -278,7 +291,8 @@ function processPayment(gatewayId) {
         },
         body: JSON.stringify({
             amount: selectedAmount,
-            gateway_id: gatewayId
+            gateway_id: gatewayId,
+            currency: currencyCode
         })
     })
     .then(response => response.json())

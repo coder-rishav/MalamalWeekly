@@ -63,6 +63,10 @@ class PaymentGateway(models.Model):
     transaction_fee_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, help_text="Fee percentage (0 for none)")
     transaction_fee_fixed = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Fixed fee amount")
     
+    # Multi-Currency Support
+    supported_currencies = models.ManyToManyField(Currency, blank=True, related_name='payment_gateways', help_text="Currencies supported by this gateway")
+    base_currency = models.ForeignKey(Currency, on_delete=models.SET_NULL, null=True, blank=True, related_name='gateway_base', help_text="Gateway's base currency (usually INR)")
+    
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -150,6 +154,11 @@ class Transaction(models.Model):
     fee_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Gateway fees")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Amount + Fees")
     
+    # Multi-Currency Support
+    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, related_name='transactions', null=True, blank=True, help_text="Transaction currency")
+    amount_in_base = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Amount in base currency (INR)")
+    exchange_rate = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True, help_text="Exchange rate used")
+    
     # Payment Gateway Integration
     payment_gateway = models.ForeignKey(PaymentGateway, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, blank=True, null=True)
@@ -215,6 +224,9 @@ class DepositRequest(models.Model):
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='deposit_requests')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, related_name='deposit_requests', null=True, blank=True, help_text="Deposit currency")
+    amount_in_base = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Amount in INR")
+    exchange_rate = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True, help_text="Exchange rate used")
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS)
     payment_gateway = models.ForeignKey(PaymentGateway, on_delete=models.SET_NULL, null=True, blank=True, related_name='deposit_requests')
     
@@ -260,6 +272,9 @@ class WithdrawalRequest(models.Model):
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='withdrawal_requests')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, related_name='withdrawal_requests', null=True, blank=True, help_text="Withdrawal currency")
+    amount_in_base = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Amount in INR")
+    exchange_rate = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True, help_text="Exchange rate used")
     
     # Bank details
     bank_name = models.CharField(max_length=200)

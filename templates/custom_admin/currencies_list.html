@@ -134,7 +134,7 @@
                                        class="btn btn-sm btn-outline-{% if currency.is_active %}secondary{% else %}success{% endif %}" 
                                        title="{% if currency.is_active %}Deactivate{% else %}Activate{% endif %}"
                                        onclick="return confirm('Are you sure you want to {% if currency.is_active %}deactivate{% else %}activate{% endif %} this currency?');">
-                                        <i class="bi bi-{% if currency.is_active %}toggle-off{% else %}toggle-on{% endif %}"></i>
+                                        <i class="bi bi-{% if currency.is_active %}toggle-on{% else %}toggle-off{% endif %}"></i>
                                     </a>
                                 </div>
                             </td>

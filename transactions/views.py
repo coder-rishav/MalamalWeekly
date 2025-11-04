@@ -41,10 +41,28 @@ def add_credits(request):
         messages.error(request, 'No payment methods available. Please contact support.')
         return redirect('games:dashboard')
     
+    # Get user's preferred currency
+    from .currency_utils import CurrencyManager
+    currency_manager = CurrencyManager()
+    user_currency = currency_manager.get_user_currency(request.user)
+    
+    # Convert wallet balance to user's currency
+    wallet_balance_in_user_currency = profile.wallet_balance
+    if user_currency and user_currency.code != 'INR':
+        wallet_balance_in_user_currency = currency_manager.convert(
+            amount=profile.wallet_balance,
+            from_currency='INR',
+            to_currency=user_currency.code
+        )
+    
     context = {
         'gateways': available_gateways,
         'user': request.user,
-        'wallet_balance': profile.wallet_balance,
+        'wallet_balance': profile.wallet_balance,  # Original INR balance
+        'wallet_balance_display': wallet_balance_in_user_currency,  # Display in user currency
+        'user_currency': user_currency,
+        'currency_code': user_currency.code if user_currency else 'INR',
+        'currency_symbol': user_currency.symbol if user_currency else '₹',
     }
     return render(request, 'transactions/add_credits.html', context)
 
@@ -52,34 +70,111 @@ def add_credits(request):
 @login_required
 @require_POST
 def create_payment_order(request):
-    """Create payment order via AJAX"""
+    """Create payment order via AJAX with multi-currency support"""
     try:
         data = json.loads(request.body)
         amount = float(data.get('amount'))
         gateway_id = int(data.get('gateway_id'))
+        currency_code = data.get('currency', 'INR')
+        
+        # Get currency manager
+        from .currency_utils import CurrencyManager
+        currency_manager = CurrencyManager()
+        
+        # Get user's currency
+        from .currency_models import Currency
+        currency = Currency.objects.get(code=currency_code)
         
         # Validate amount
         gateway = get_object_or_404(PaymentGateway, id=gateway_id, is_active=True)
         
-        if amount < float(gateway.min_amount):
-            return JsonResponse({
-                'success': False,
-                'error': f'Minimum deposit amount is ₹{gateway.min_amount}'
-            })
+        # Convert min/max amounts to user's currency for validation
+        min_amount = amount
+        max_amount = amount
         
-        if amount > float(gateway.max_amount):
-            return JsonResponse({
-                'success': False,
-                'error': f'Maximum deposit amount is ₹{gateway.max_amount}'
-            })
+        if currency_code != 'INR':
+            # Validate in user's currency
+            min_amount_user_currency = currency_manager.convert(
+                float(gateway.min_amount), 'INR', currency_code
+            )
+            max_amount_user_currency = currency_manager.convert(
+                float(gateway.max_amount), 'INR', currency_code
+            )
+            
+            if amount < min_amount_user_currency:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Minimum deposit amount is {currency.symbol}{min_amount_user_currency:.2f}'
+                })
+            
+            if amount > max_amount_user_currency:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Maximum deposit amount is {currency.symbol}{max_amount_user_currency:.2f}'
+                })
+            
+            # Convert to INR for payment gateway
+            amount_in_inr = currency_manager.convert(amount, currency_code, 'INR')
+        else:
+            amount_in_inr = amount
+            
+            if amount < float(gateway.min_amount):
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Minimum deposit amount is ₹{gateway.min_amount}'
+                })
+            
+            if amount > float(gateway.max_amount):
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Maximum deposit amount is ₹{gateway.max_amount}'
+                })
         
-        # Create payment order
+        # Get exchange rate
+        from .currency_models import ExchangeRate
+        exchange_rate = 1.0
+        if currency_code != 'INR':
+            rate_obj = ExchangeRate.get_current_rate(currency_code, 'INR')
+            if rate_obj:
+                exchange_rate = float(rate_obj)
+        
+        # Create deposit request with currency info
+        deposit = DepositRequest.objects.create(
+            user=request.user,
+            amount=amount,
+            currency=currency,
+            amount_in_base=amount_in_inr,
+            exchange_rate=exchange_rate,
+            payment_method='online',
+            payment_gateway=gateway,
+            status='pending'
+        )
+        
+        # Create payment order (amount in INR for Indian payment gateways)
         service = PaymentService(gateway_id)
-        order_data = service.create_order(request.user, amount, description="Wallet Recharge")
+        order_data = service.create_order(
+            request.user, 
+            amount_in_inr, 
+            description=f"Wallet Recharge - {currency.code}",
+            metadata={
+                'deposit_id': deposit.id,
+                'currency': currency_code,
+                'original_amount': amount,
+                'exchange_rate': exchange_rate
+            }
+        )
+        
+        # Add currency info to response
+        if order_data.get('success'):
+            order_data['currency'] = currency_code
+            order_data['display_amount'] = amount
+            order_data['deposit_id'] = deposit.id
         
         return JsonResponse(order_data)
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'error': str(e)

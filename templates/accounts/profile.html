@@ -73,6 +73,32 @@
                 {% endif %}
             </div>
         </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-currency-exchange"></i> Currency Preference</h6>
+                <div class="mb-3">
+                    {% if profile.preferred_currency %}
+                        <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded">
+                            <div>
+                                <span class="badge bg-primary" style="font-size: 1rem;">
+                                    {{ profile.preferred_currency.symbol }} {{ profile.preferred_currency.code }}
+                                </span>
+                                <small class="d-block text-muted mt-1">{{ profile.preferred_currency.name }}</small>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">No currency selected. Using default (INR).</p>
+                    {% endif %}
+                </div>
+                <a href="{% url 'accounts:change_currency' %}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-arrow-repeat"></i> Change Currency
+                </a>
+                <small class="text-muted d-block mt-2">
+                    <i class="bi bi-info-circle"></i> All amounts will be displayed in your preferred currency.
+                </small>
+            </div>
+        </div>
     </div>
     
     <div class="col-md-8 mb-4">
@@ -84,19 +110,37 @@
                 <div class="row text-center">
                     <div class="col-md-3 mb-3">
                         <h6 class="text-muted">Current Balance</h6>
-                        <h3 class="text-primary">₹{{ profile.wallet_balance }}</h3>
+                        {% load currency_tags %}
+                        {% if profile.preferred_currency %}
+                            <h3 class="text-primary">{% format_user_amount profile.wallet_balance user as formatted %}{{ formatted }}</h3>
+                            <small class="text-muted">(₹{{ profile.wallet_balance|floatformat:2 }} INR)</small>
+                        {% else %}
+                            <h3 class="text-primary">₹{{ profile.wallet_balance }}</h3>
+                        {% endif %}
                     </div>
                     <div class="col-md-3 mb-3">
                         <h6 class="text-muted">Total Deposits</h6>
-                        <h3 class="text-info">₹{{ profile.total_deposits }}</h3>
+                        {% if profile.preferred_currency %}
+                            <h3 class="text-info">{% format_user_amount profile.total_deposits user as formatted_deposits %}{{ formatted_deposits }}</h3>
+                        {% else %}
+                            <h3 class="text-info">₹{{ profile.total_deposits }}</h3>
+                        {% endif %}
                     </div>
                     <div class="col-md-3 mb-3">
                         <h6 class="text-muted">Total Winnings</h6>
-                        <h3 class="text-success">₹{{ profile.total_winnings }}</h3>
+                        {% if profile.preferred_currency %}
+                            <h3 class="text-success">{% format_user_amount profile.total_winnings user as formatted_winnings %}{{ formatted_winnings }}</h3>
+                        {% else %}
+                            <h3 class="text-success">₹{{ profile.total_winnings }}</h3>
+                        {% endif %}
                     </div>
                     <div class="col-md-3 mb-3">
                         <h6 class="text-muted">Total Spent</h6>
-                        <h3 class="text-danger">₹{{ profile.total_spent }}</h3>
+                        {% if profile.preferred_currency %}
+                            <h3 class="text-danger">{% format_user_amount profile.total_spent user as formatted_spent %}{{ formatted_spent }}</h3>
+                        {% else %}
+                            <h3 class="text-danger">₹{{ profile.total_spent }}</h3>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="d-flex gap-2 mt-3">

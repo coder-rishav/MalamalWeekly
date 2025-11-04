@@ -554,10 +554,11 @@
                                 <i class="bi bi-person-circle"></i> {{ user.username }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:edit_profile' %}">Edit Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person"></i> Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:edit_profile' %}"><i class="bi bi-pencil"></i> Edit Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:change_currency' %}"><i class="bi bi-currency-exchange"></i> Change Currency</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
                             </ul>
                         </li>
                     {% else %}

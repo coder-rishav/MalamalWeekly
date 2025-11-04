@@ -41,14 +41,30 @@ class PaymentService:
             'total': total
         }
     
-    def create_order(self, user, amount, description="Deposit"):
-        """Create payment order based on gateway provider"""
+    def create_order(self, user, amount, description="Deposit", metadata=None):
+        """Create payment order based on gateway provider with multi-currency support"""
         
         # Calculate fees
         fee_calc = self.calculate_fees(amount)
         
         # Get current balance
         current_balance = user.profile.wallet_balance
+        
+        # Extract currency info from metadata if provided
+        currency = None
+        exchange_rate = None
+        original_amount = amount
+        
+        if metadata:
+            currency_code = metadata.get('currency', 'INR')
+            from .currency_models import Currency
+            try:
+                currency = Currency.objects.get(code=currency_code)
+            except Currency.DoesNotExist:
+                pass
+            
+            exchange_rate = metadata.get('exchange_rate')
+            original_amount = metadata.get('original_amount', amount)
         
         # Create transaction record
         transaction = Transaction.objects.create(
@@ -57,6 +73,9 @@ class PaymentService:
             amount=fee_calc['amount'],
             fee_amount=fee_calc['fee'],
             total_amount=fee_calc['total'],
+            currency=currency,
+            amount_in_base=fee_calc['amount'],  # This is already in INR
+            exchange_rate=exchange_rate,
             payment_gateway=self.gateway,
             status='pending',
             balance_before=current_balance,
