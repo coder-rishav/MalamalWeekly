@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
     <style>
+        /* Fix Toastr icon issues - remove default icons that show as tick marks */
+        #toast-container > div {
+            background-image: none !important;
+            padding: 15px 15px 15px 15px !important;
+        }
+        #toast-container > div::before {
+            content: none !important;
+        }
+        
         .sidebar {
             min-height: 100vh;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

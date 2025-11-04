@@ -15,6 +15,33 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
         
+        /* Fix Toastr icon issues - remove default icons that show as tick marks */
+        #toast-container > div {
+            background-image: none !important;
+            padding: 15px 15px 15px 15px !important;
+        }
+        
+        #toast-container > .toast-success {
+            background-image: none !important;
+        }
+        
+        #toast-container > .toast-error {
+            background-image: none !important;
+        }
+        
+        #toast-container > .toast-info {
+            background-image: none !important;
+        }
+        
+        #toast-container > .toast-warning {
+            background-image: none !important;
+        }
+        
+        /* Remove the icon padding */
+        #toast-container > div::before {
+            content: none !important;
+        }
+        
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
