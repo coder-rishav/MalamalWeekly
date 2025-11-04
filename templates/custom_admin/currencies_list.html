@@ -1,0 +1,170 @@
+{% extends 'custom_admin/base.html' %}
+{% load static %}
+
+{% block title %}Manage Currencies - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-currency-exchange me-2"></i>Manage Currencies</h2>
+        <a href="{% url 'custom_admin:currency_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Add New Currency
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Currencies</h6>
+                            <h3 class="mb-0">{{ total_currencies }}</h3>
+                        </div>
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-currency-exchange fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Active Currencies</h6>
+                            <h3 class="mb-0 text-success">{{ active_currencies }}</h3>
+                        </div>
+                        <div class="icon-box bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-check-circle fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Inactive Currencies</h6>
+                            <h3 class="mb-0 text-secondary">{{ total_currencies|add:"-"|add:active_currencies }}</h3>
+                        </div>
+                        <div class="icon-box bg-secondary bg-opacity-10 text-secondary">
+                            <i class="bi bi-x-circle fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Currencies Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Symbol</th>
+                            <th>Position</th>
+                            <th>Decimals</th>
+                            <th>Separators</th>
+                            <th>Base</th>
+                            <th>Status</th>
+                            <th>Order</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for currency in currencies %}
+                        <tr>
+                            <td>
+                                <strong>{{ currency.code }}</strong>
+                            </td>
+                            <td>{{ currency.name }}</td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ currency.symbol }}</span>
+                            </td>
+                            <td>
+                                {% if currency.symbol_position == 'before' %}
+                                    <i class="bi bi-arrow-left-circle text-primary"></i> Before
+                                {% else %}
+                                    <i class="bi bi-arrow-right-circle text-info"></i> After
+                                {% endif %}
+                            </td>
+                            <td>{{ currency.decimal_places }}</td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ currency.thousand_separator|default:"-" }} / {{ currency.decimal_separator|default:"-" }}
+                                </small>
+                            </td>
+                            <td>
+                                {% if currency.is_base_currency %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-star-fill"></i> Base
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if currency.is_active %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Active
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-x-circle"></i> Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>{{ currency.display_order }}</td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'custom_admin:currency_edit' currency.id %}" 
+                                       class="btn btn-sm btn-outline-primary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'custom_admin:currency_toggle_status' currency.id %}" 
+                                       class="btn btn-sm btn-outline-{% if currency.is_active %}secondary{% else %}success{% endif %}" 
+                                       title="{% if currency.is_active %}Deactivate{% else %}Activate{% endif %}"
+                                       onclick="return confirm('Are you sure you want to {% if currency.is_active %}deactivate{% else %}activate{% endif %} this currency?');">
+                                        <i class="bi bi-{% if currency.is_active %}toggle-off{% else %}toggle-on{% endif %}"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5">
+                                <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                                <p class="text-muted">No currencies found. Add your first currency to get started.</p>
+                                <a href="{% url 'custom_admin:currency_create' %}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle me-1"></i>Add Currency
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends 'games/base.html' %}
+{% load static %}
+
+{% block title %}Change Currency - Malamal Weekly{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-currency-exchange"></i> Change Preferred Currency</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Select your preferred currency. All amounts will be displayed and converted to this currency throughout the platform.
+                    </p>
+                    
+                    {% if current_currency %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Current Currency: 
+                        <strong>{{ current_currency.name }} ({{ current_currency.symbol }})</strong>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" action="{% url 'accounts:change_currency' %}">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            {% for currency in currencies %}
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check currency-option {% if current_currency and current_currency.code == currency.code %}active{% endif %}">
+                                    <input 
+                                        class="form-check-input" 
+                                        type="radio" 
+                                        name="currency_code" 
+                                        id="currency_{{ currency.code }}" 
+                                        value="{{ currency.code }}"
+                                        {% if current_currency and current_currency.code == currency.code %}checked{% endif %}
+                                    >
+                                    <label class="form-check-label w-100" for="currency_{{ currency.code }}">
+                                        <div class="d-flex justify-content-between align-items-center p-3 border rounded" style="cursor: pointer;">
+                                            <div>
+                                                <strong style="font-size: 1.2rem;">{{ currency.symbol }}</strong>
+                                                <span class="ms-2">{{ currency.code }}</span>
+                                            </div>
+                                            <div class="text-end">
+                                                <small class="text-muted d-block">{{ currency.name }}</small>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Profile
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Save Currency Preference
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-info-circle text-info"></i> About Currency Conversion</h5>
+                    <ul class="mb-0">
+                        <li>All amounts will be automatically converted to your preferred currency</li>
+                        <li>Exchange rates are updated regularly</li>
+                        <li>Actual transactions may use the exchange rate at the time of transaction</li>
+                        <li>Your wallet balance is stored in the base currency (INR) and converted for display</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .currency-option {
+        transition: all 0.3s;
+    }
+    
+    .currency-option .border {
+        transition: all 0.3s;
+    }
+    
+    .currency-option input:checked ~ label .border {
+        border-color: #0d6efd !important;
+        background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(13, 110, 253, 0.05) 100%);
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
+    }
+    
+    .currency-option:hover .border {
+        border-color: #0d6efd !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}

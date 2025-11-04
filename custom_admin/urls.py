@@ -64,4 +64,14 @@ urlpatterns = [
     path('kyc/<int:user_id>/review/', views.kyc_review, name='kyc_review'),
     path('kyc/<int:user_id>/approve/', views.kyc_approve, name='kyc_approve'),
     path('kyc/<int:user_id>/reject/', views.kyc_reject, name='kyc_reject'),
+    
+    # Currency Management
+    path('currencies/', views.currencies_list, name='currencies_list'),
+    path('currencies/create/', views.currency_create, name='currency_create'),
+    path('currencies/<int:currency_id>/edit/', views.currency_edit, name='currency_edit'),
+    path('currencies/<int:currency_id>/toggle-status/', views.currency_toggle_status, name='currency_toggle_status'),
+    path('exchange-rates/', views.exchange_rates_list, name='exchange_rates_list'),
+    path('exchange-rates/create/', views.exchange_rate_create, name='exchange_rate_create'),
+    path('exchange-rates/<int:rate_id>/edit/', views.exchange_rate_edit, name='exchange_rate_edit'),
+    path('exchange-rates/<int:rate_id>/delete/', views.exchange_rate_delete, name='exchange_rate_delete'),
 ]

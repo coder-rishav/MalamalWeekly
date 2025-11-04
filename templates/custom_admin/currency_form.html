@@ -1,0 +1,226 @@
+{% extends 'custom_admin/base.html' %}
+{% load static %}
+
+{% block title %}{% if mode == 'create' %}Add New Currency{% else %}Edit Currency{% endif %} - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-currency-exchange me-2"></i>
+            {% if mode == 'create' %}Add New Currency{% else %}Edit Currency{% endif %}
+        </h2>
+        <a href="{% url 'custom_admin:currencies_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to List
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" id="currencyForm">
+                        {% csrf_token %}
+                        
+                        <!-- Currency Code & Name -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="code" class="form-label">Currency Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="code" name="code" 
+                                       value="{% if mode == 'edit' %}{{ currency.code }}{% endif %}" 
+                                       placeholder="USD" maxlength="3" required
+                                       style="text-transform: uppercase;">
+                                <small class="text-muted">ISO 4217 code (3 letters)</small>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="name" class="form-label">Currency Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{% if mode == 'edit' %}{{ currency.name }}{% endif %}" 
+                                       placeholder="United States Dollar" required>
+                            </div>
+                        </div>
+
+                        <!-- Symbol Settings -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="symbol" class="form-label">Symbol <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="symbol" name="symbol" 
+                                       value="{% if mode == 'edit' %}{{ currency.symbol }}{% endif %}" 
+                                       placeholder="$" required>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="symbol_position" class="form-label">Symbol Position <span class="text-danger">*</span></label>
+                                <select class="form-select" id="symbol_position" name="symbol_position" required>
+                                    <option value="before" {% if mode == 'edit' and currency.symbol_position == 'before' %}selected{% endif %}>
+                                        Before Amount (e.g., $100.00)
+                                    </option>
+                                    <option value="after" {% if mode == 'edit' and currency.symbol_position == 'after' %}selected{% endif %}>
+                                        After Amount (e.g., 100.00$)
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Format Settings -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="decimal_places" class="form-label">Decimal Places <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="decimal_places" name="decimal_places" 
+                                       value="{% if mode == 'edit' %}{{ currency.decimal_places }}{% else %}2{% endif %}" 
+                                       min="0" max="8" required>
+                                <small class="text-muted">Usually 2 for most currencies</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="thousand_separator" class="form-label">Thousand Separator</label>
+                                <input type="text" class="form-control" id="thousand_separator" name="thousand_separator" 
+                                       value="{% if mode == 'edit' %}{{ currency.thousand_separator }}{% else %},{% endif %}" 
+                                       maxlength="1" placeholder=",">
+                                <small class="text-muted">e.g., 1,000,000</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="decimal_separator" class="form-label">Decimal Separator</label>
+                                <input type="text" class="form-control" id="decimal_separator" name="decimal_separator" 
+                                       value="{% if mode == 'edit' %}{{ currency.decimal_separator }}{% else %}.{% endif %}" 
+                                       maxlength="1" placeholder=".">
+                                <small class="text-muted">e.g., 100.50</small>
+                            </div>
+                        </div>
+
+                        <!-- Additional Settings -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="display_order" class="form-label">Display Order</label>
+                                <input type="number" class="form-control" id="display_order" name="display_order" 
+                                       value="{% if mode == 'edit' %}{{ currency.display_order }}{% else %}0{% endif %}" 
+                                       min="0">
+                                <small class="text-muted">Lower numbers appear first</small>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label d-block mb-2">Settings</label>
+                                <div class="form-check form-switch d-inline-block me-4">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                                           {% if mode == 'create' or currency.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_active">
+                                        Active
+                                    </label>
+                                </div>
+                                <div class="form-check form-switch d-inline-block">
+                                    <input class="form-check-input" type="checkbox" id="is_base_currency" name="is_base_currency"
+                                           {% if mode == 'edit' and currency.is_base_currency %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_base_currency">
+                                        Base Currency
+                                    </label>
+                                </div>
+                                <br>
+                                <small class="text-muted">Base currency is used as the reference for exchange rates</small>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Preview -->
+                        <div class="alert alert-info">
+                            <h6><i class="bi bi-eye me-1"></i>Format Preview</h6>
+                            <p class="mb-0">
+                                <strong id="preview">$1,234.56</strong>
+                            </p>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'custom_admin:currencies_list' %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i>
+                                {% if mode == 'create' %}Create Currency{% else %}Update Currency{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-info-circle me-2"></i>Help</h5>
+                    
+                    <h6 class="mt-3">Currency Code</h6>
+                    <p class="small text-muted">
+                        Use ISO 4217 standard 3-letter codes (e.g., USD, EUR, GBP, INR).
+                    </p>
+
+                    <h6 class="mt-3">Symbol Position</h6>
+                    <p class="small text-muted">
+                        Most currencies use "before" (like $100), but some use "after" (like 100€).
+                    </p>
+
+                    <h6 class="mt-3">Decimal Places</h6>
+                    <p class="small text-muted">
+                        Most currencies use 2 decimal places. Some like JPY and KRW use 0.
+                    </p>
+
+                    <h6 class="mt-3">Base Currency</h6>
+                    <p class="small text-muted">
+                        Mark one currency as base. All exchange rates will be relative to this currency.
+                    </p>
+
+                    <div class="alert alert-warning small mt-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        <strong>Note:</strong> Changing base currency requires updating all exchange rates.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Live preview of currency format
+    function updatePreview() {
+        const symbol = document.getElementById('symbol').value || '$';
+        const position = document.getElementById('symbol_position').value;
+        const decimalPlaces = parseInt(document.getElementById('decimal_places').value) || 2;
+        const thousandSep = document.getElementById('thousand_separator').value || ',';
+        const decimalSep = document.getElementById('decimal_separator').value || '.';
+        
+        // Format sample amount
+        let amount = '1234.56';
+        let parts = amount.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousandSep);
+        
+        // Handle decimal places
+        if (decimalPlaces > 0) {
+            parts[1] = (parts[1] || '00').padEnd(decimalPlaces, '0').substring(0, decimalPlaces);
+            amount = parts.join(decimalSep);
+        } else {
+            amount = parts[0];
+        }
+        
+        // Add symbol
+        if (position === 'before') {
+            amount = symbol + amount;
+        } else {
+            amount = amount + symbol;
+        }
+        
+        document.getElementById('preview').textContent = amount;
+    }
+
+    // Update preview on input change
+    document.querySelectorAll('input, select').forEach(element => {
+        element.addEventListener('input', updatePreview);
+        element.addEventListener('change', updatePreview);
+    });
+
+    // Initial preview
+    updatePreview();
+
+    // Convert code to uppercase
+    document.getElementById('code').addEventListener('input', function(e) {
+        e.target.value = e.target.value.toUpperCase();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,223 @@
+{% extends 'custom_admin/base.html' %}
+{% load static %}
+
+{% block title %}Manage Exchange Rates - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-arrow-left-right me-2"></i>Manage Exchange Rates</h2>
+        <a href="{% url 'custom_admin:exchange_rate_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Add New Rate
+        </a>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Exchange Rates</h6>
+                            <h3 class="mb-0">{{ total_rates }}</h3>
+                        </div>
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-arrow-left-right fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Active Rates</h6>
+                            <h3 class="mb-0 text-success">{{ active_rates }}</h3>
+                        </div>
+                        <div class="icon-box bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-check-circle fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="from_currency" class="form-label">From Currency</label>
+                    <select name="from_currency" id="from_currency" class="form-select">
+                        <option value="">All Currencies</option>
+                        {% for currency in currencies %}
+                            <option value="{{ currency.code }}" {% if request.GET.from_currency == currency.code %}selected{% endif %}>
+                                {{ currency.code }} - {{ currency.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="to_currency" class="form-label">To Currency</label>
+                    <select name="to_currency" id="to_currency" class="form-select">
+                        <option value="">All Currencies</option>
+                        {% for currency in currencies %}
+                            <option value="{{ currency.code }}" {% if request.GET.to_currency == currency.code %}selected{% endif %}>
+                                {{ currency.code }} - {{ currency.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="is_active" class="form-label">Status</label>
+                    <select name="is_active" id="is_active" class="form-select">
+                        <option value="">All</option>
+                        <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>Active</option>
+                        <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    <a href="{% url 'custom_admin:exchange_rates_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Exchange Rates Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Rate</th>
+                            <th>Reverse Rate</th>
+                            <th>Source</th>
+                            <th>Effective From</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rate in rates %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    {{ rate.from_currency.symbol }} {{ rate.from_currency.code }}
+                                </span>
+                            </td>
+                            <td>
+                                <i class="bi bi-arrow-right text-muted"></i>
+                                <span class="badge bg-light text-dark border">
+                                    {{ rate.to_currency.symbol }} {{ rate.to_currency.code }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>{{ rate.rate }}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    1 {{ rate.from_currency.code }} = {{ rate.rate }} {{ rate.to_currency.code }}
+                                </small>
+                            </td>
+                            <td>
+                                {% widthratio 1 rate.rate 1 as reverse_rate %}
+                                <small class="text-muted">
+                                    {% with reverse=1|floatformat:6 %}
+                                    {{ reverse|floatdiv:rate.rate|floatformat:6 }}
+                                    {% endwith %}
+                                </small>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ rate.source }}</small>
+                            </td>
+                            <td>
+                                <small>{{ rate.effective_from|date:"M d, Y H:i" }}</small>
+                                {% if rate.effective_until %}
+                                    <br><small class="text-danger">Until: {{ rate.effective_until|date:"M d, Y" }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if rate.is_active %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Active
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-x-circle"></i> Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'custom_admin:exchange_rate_edit' rate.id %}" 
+                                       class="btn btn-sm btn-outline-primary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'custom_admin:exchange_rate_delete' rate.id %}" 
+                                       class="btn btn-sm btn-outline-danger" 
+                                       title="Delete"
+                                       onclick="return confirm('Are you sure you want to delete this exchange rate?');">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                                <p class="text-muted">No exchange rates found. Add your first rate to get started.</p>
+                                <a href="{% url 'custom_admin:exchange_rate_create' %}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle me-1"></i>Add Exchange Rate
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-calculator me-2"></i>Quick Reference</h5>
+            <div class="row">
+                {% for rate in rates|slice:":6" %}
+                    {% if rate.is_active %}
+                    <div class="col-md-4 mb-2">
+                        <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                            <span>{{ rate.from_currency.code }} → {{ rate.to_currency.code }}</span>
+                            <strong class="text-primary">{{ rate.rate }}</strong>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+    }
+</style>
+{% endblock %}

@@ -1631,3 +1631,237 @@ def kyc_reject(request, user_id):
         return redirect('custom_admin:kyc_requests_list')
     
     return redirect('custom_admin:kyc_review', user_id=user_id)
+
+
+# ========================
+# Currency Management Views
+# ========================
+
+@login_required
+@user_passes_test(is_admin)
+def currencies_list(request):
+    """List all currencies"""
+    from transactions.currency_models import Currency
+    
+    currencies = Currency.objects.all().order_by('display_order', 'code')
+    
+    context = {
+        'currencies': currencies,
+        'total_currencies': currencies.count(),
+        'active_currencies': currencies.filter(is_active=True).count(),
+    }
+    
+    return render(request, 'custom_admin/currencies_list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def currency_create(request):
+    """Create a new currency"""
+    from transactions.currency_models import Currency
+    from transactions.currency_utils import CurrencyManager
+    
+    if request.method == 'POST':
+        try:
+            currency = Currency.objects.create(
+                code=request.POST.get('code').upper(),
+                name=request.POST.get('name'),
+                symbol=request.POST.get('symbol'),
+                symbol_position=request.POST.get('symbol_position', 'before'),
+                decimal_places=int(request.POST.get('decimal_places', 2)),
+                thousand_separator=request.POST.get('thousand_separator', ','),
+                decimal_separator=request.POST.get('decimal_separator', '.'),
+                is_active=request.POST.get('is_active') == 'on',
+                is_base_currency=request.POST.get('is_base_currency') == 'on',
+                display_order=int(request.POST.get('display_order', 0))
+            )
+            CurrencyManager.clear_cache()
+            messages.success(request, f'Currency {currency.code} created successfully.')
+            return redirect('custom_admin:currencies_list')
+        except Exception as e:
+            messages.error(request, f'Error creating currency: {str(e)}')
+    
+    return render(request, 'custom_admin/currency_form.html', {'mode': 'create'})
+
+
+@login_required
+@user_passes_test(is_admin)
+def currency_edit(request, currency_id):
+    """Edit an existing currency"""
+    from transactions.currency_models import Currency
+    from transactions.currency_utils import CurrencyManager
+    
+    currency = get_object_or_404(Currency, id=currency_id)
+    
+    if request.method == 'POST':
+        try:
+            currency.code = request.POST.get('code').upper()
+            currency.name = request.POST.get('name')
+            currency.symbol = request.POST.get('symbol')
+            currency.symbol_position = request.POST.get('symbol_position', 'before')
+            currency.decimal_places = int(request.POST.get('decimal_places', 2))
+            currency.thousand_separator = request.POST.get('thousand_separator', ',')
+            currency.decimal_separator = request.POST.get('decimal_separator', '.')
+            currency.is_active = request.POST.get('is_active') == 'on'
+            currency.is_base_currency = request.POST.get('is_base_currency') == 'on'
+            currency.display_order = int(request.POST.get('display_order', 0))
+            currency.save()
+            
+            CurrencyManager.clear_cache()
+            messages.success(request, f'Currency {currency.code} updated successfully.')
+            return redirect('custom_admin:currencies_list')
+        except Exception as e:
+            messages.error(request, f'Error updating currency: {str(e)}')
+    
+    context = {
+        'mode': 'edit',
+        'currency': currency,
+    }
+    
+    return render(request, 'custom_admin/currency_form.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def currency_toggle_status(request, currency_id):
+    """Toggle currency active status"""
+    from transactions.currency_models import Currency
+    from transactions.currency_utils import CurrencyManager
+    
+    currency = get_object_or_404(Currency, id=currency_id)
+    currency.is_active = not currency.is_active
+    currency.save()
+    
+    CurrencyManager.clear_cache()
+    
+    status = 'activated' if currency.is_active else 'deactivated'
+    messages.success(request, f'Currency {currency.code} has been {status}.')
+    
+    return redirect('custom_admin:currencies_list')
+
+
+@login_required
+@user_passes_test(is_admin)
+def exchange_rates_list(request):
+    """List all exchange rates"""
+    from transactions.currency_models import ExchangeRate, Currency
+    
+    # Get filter parameters
+    from_currency_code = request.GET.get('from_currency')
+    to_currency_code = request.GET.get('to_currency')
+    is_active = request.GET.get('is_active')
+    
+    rates = ExchangeRate.objects.select_related('from_currency', 'to_currency').all()
+    
+    # Apply filters
+    if from_currency_code:
+        rates = rates.filter(from_currency__code=from_currency_code)
+    if to_currency_code:
+        rates = rates.filter(to_currency__code=to_currency_code)
+    if is_active:
+        rates = rates.filter(is_active=is_active == 'true')
+    
+    rates = rates.order_by('-effective_from')
+    
+    # Get all currencies for filter dropdown
+    currencies = Currency.objects.filter(is_active=True).order_by('code')
+    
+    context = {
+        'rates': rates,
+        'currencies': currencies,
+        'total_rates': rates.count(),
+        'active_rates': rates.filter(is_active=True).count(),
+    }
+    
+    return render(request, 'custom_admin/exchange_rates_list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def exchange_rate_create(request):
+    """Create a new exchange rate"""
+    from transactions.currency_models import ExchangeRate, Currency
+    from transactions.currency_utils import CurrencyManager
+    from decimal import Decimal
+    
+    if request.method == 'POST':
+        try:
+            from_currency = get_object_or_404(Currency, id=request.POST.get('from_currency'))
+            to_currency = get_object_or_404(Currency, id=request.POST.get('to_currency'))
+            
+            if from_currency == to_currency:
+                messages.error(request, 'From and To currencies cannot be the same.')
+                return redirect('custom_admin:exchange_rate_create')
+            
+            rate = ExchangeRate.objects.create(
+                from_currency=from_currency,
+                to_currency=to_currency,
+                rate=Decimal(request.POST.get('rate')),
+                source=f'manual_by_{request.user.username}',
+                is_active=request.POST.get('is_active') == 'on',
+                effective_from=timezone.now()
+            )
+            
+            CurrencyManager.clear_cache()
+            messages.success(request, f'Exchange rate from {from_currency.code} to {to_currency.code} created successfully.')
+            return redirect('custom_admin:exchange_rates_list')
+        except Exception as e:
+            messages.error(request, f'Error creating exchange rate: {str(e)}')
+    
+    currencies = Currency.objects.filter(is_active=True).order_by('code')
+    context = {
+        'mode': 'create',
+        'currencies': currencies,
+    }
+    
+    return render(request, 'custom_admin/exchange_rate_form.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def exchange_rate_edit(request, rate_id):
+    """Edit an existing exchange rate"""
+    from transactions.currency_models import ExchangeRate, Currency
+    from transactions.currency_utils import CurrencyManager
+    from decimal import Decimal
+    
+    rate_obj = get_object_or_404(ExchangeRate, id=rate_id)
+    
+    if request.method == 'POST':
+        try:
+            rate_obj.rate = Decimal(request.POST.get('rate'))
+            rate_obj.is_active = request.POST.get('is_active') == 'on'
+            rate_obj.save()
+            
+            CurrencyManager.clear_cache()
+            messages.success(request, f'Exchange rate updated successfully.')
+            return redirect('custom_admin:exchange_rates_list')
+        except Exception as e:
+            messages.error(request, f'Error updating exchange rate: {str(e)}')
+    
+    currencies = Currency.objects.filter(is_active=True).order_by('code')
+    context = {
+        'mode': 'edit',
+        'rate': rate_obj,
+        'currencies': currencies,
+    }
+    
+    return render(request, 'custom_admin/exchange_rate_form.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def exchange_rate_delete(request, rate_id):
+    """Delete an exchange rate"""
+    from transactions.currency_models import ExchangeRate
+    from transactions.currency_utils import CurrencyManager
+    
+    rate = get_object_or_404(ExchangeRate, id=rate_id)
+    from_code = rate.from_currency.code
+    to_code = rate.to_currency.code
+    rate.delete()
+    
+    CurrencyManager.clear_cache()
+    messages.success(request, f'Exchange rate from {from_code} to {to_code} has been deleted.')
+    
+    return redirect('custom_admin:exchange_rates_list')

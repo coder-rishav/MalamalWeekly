@@ -209,3 +209,37 @@ def view_kyc(request):
     }
     
     return render(request, 'accounts/view_kyc.html', context)
+
+
+@login_required
+def change_currency(request):
+    """Change user's preferred currency"""
+    from transactions.currency_models import Currency
+    from transactions.currency_utils import CurrencyManager
+    
+    profile = request.user.profile
+    
+    if request.method == 'POST':
+        currency_code = request.POST.get('currency_code')
+        try:
+            currency = Currency.objects.get(code=currency_code, is_active=True)
+            profile.preferred_currency = currency
+            profile.save()
+            
+            # Clear cache
+            CurrencyManager.clear_cache()
+            
+            messages.success(request, f'Your preferred currency has been changed to {currency.name} ({currency.symbol})')
+            return redirect('accounts:profile')
+        except Currency.DoesNotExist:
+            messages.error(request, 'Invalid currency selected.')
+    
+    # Get all active currencies
+    currencies = Currency.objects.filter(is_active=True).order_by('display_order', 'code')
+    
+    context = {
+        'currencies': currencies,
+        'current_currency': profile.preferred_currency,
+    }
+    
+    return render(request, 'accounts/change_currency.html', context)

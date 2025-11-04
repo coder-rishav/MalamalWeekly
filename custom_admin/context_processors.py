@@ -47,5 +47,10 @@ def admin_context(request):
         # Count total CMS pages
         total_pages = Page.objects.count()
         context['total_cms_pages_count'] = total_pages
+        
+        # Count total currencies
+        from transactions.currency_models import Currency
+        total_currencies = Currency.objects.count()
+        context['total_currencies_count'] = total_currencies
     
     return context
