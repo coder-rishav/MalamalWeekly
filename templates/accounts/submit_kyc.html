@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit KYC - Malamal Weekly{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="bi bi-shield-check"></i> KYC Verification</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle"></i> Why KYC is Important</h6>
+                    <ul class="mb-0">
+                        <li>Verify your identity for secure transactions</li>
+                        <li>Increase your withdrawal limits</li>
+                        <li>Unlock premium features</li>
+                        <li>Comply with legal regulations</li>
+                    </ul>
+                </div>
+
+                {% if profile.kyc_status == 'rejected' %}
+                <div class="alert alert-danger">
+                    <h6><i class="bi bi-exclamation-triangle"></i> Previous KYC Rejected</h6>
+                    <p><strong>Reason:</strong> {{ profile.kyc_rejection_reason }}</p>
+                    <p class="mb-0">Please review the rejection reason and resubmit your documents.</p>
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <h5 class="mb-3 mt-4"><i class="bi bi-person-badge"></i> Personal Details</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Full Name (as per ID) <span class="text-danger">*</span></label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                            <div class="text-danger">{{ form.full_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Aadhar Number <span class="text-danger">*</span></label>
+                            {{ form.aadhar_number }}
+                            {% if form.aadhar_number.errors %}
+                                <div class="text-danger">{{ form.aadhar_number.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.aadhar_number.help_text }}</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">PAN Number <span class="text-danger">*</span></label>
+                            {{ form.pan_number }}
+                            {% if form.pan_number.errors %}
+                                <div class="text-danger">{{ form.pan_number.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.pan_number.help_text }}</small>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h5 class="mb-3"><i class="bi bi-file-earmark-image"></i> Document Uploads</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Aadhar Card (Front) <span class="text-danger">*</span></label>
+                            {% if profile.aadhar_front %}
+                                <div class="mb-2">
+                                    <img src="{{ profile.aadhar_front.url }}" alt="Aadhar Front" class="img-thumbnail" style="max-height: 150px;">
+                                    <small class="d-block text-muted">Current file uploaded</small>
+                                </div>
+                            {% endif %}
+                            {{ form.aadhar_front }}
+                            {% if form.aadhar_front.errors %}
+                                <div class="text-danger">{{ form.aadhar_front.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Upload clear photo of front side</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Aadhar Card (Back) <span class="text-danger">*</span></label>
+                            {% if profile.aadhar_back %}
+                                <div class="mb-2">
+                                    <img src="{{ profile.aadhar_back.url }}" alt="Aadhar Back" class="img-thumbnail" style="max-height: 150px;">
+                                    <small class="d-block text-muted">Current file uploaded</small>
+                                </div>
+                            {% endif %}
+                            {{ form.aadhar_back }}
+                            {% if form.aadhar_back.errors %}
+                                <div class="text-danger">{{ form.aadhar_back.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Upload clear photo of back side</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">PAN Card <span class="text-danger">*</span></label>
+                            {% if profile.pan_card %}
+                                <div class="mb-2">
+                                    <img src="{{ profile.pan_card.url }}" alt="PAN Card" class="img-thumbnail" style="max-height: 150px;">
+                                    <small class="d-block text-muted">Current file uploaded</small>
+                                </div>
+                            {% endif %}
+                            {{ form.pan_card }}
+                            {% if form.pan_card.errors %}
+                                <div class="text-danger">{{ form.pan_card.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Upload clear photo of PAN card</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Selfie with ID <span class="text-danger">*</span></label>
+                            {% if profile.selfie_with_id %}
+                                <div class="mb-2">
+                                    <img src="{{ profile.selfie_with_id.url }}" alt="Selfie" class="img-thumbnail" style="max-height: 150px;">
+                                    <small class="d-block text-muted">Current file uploaded</small>
+                                </div>
+                            {% endif %}
+                            {{ form.selfie_with_id }}
+                            {% if form.selfie_with_id.errors %}
+                                <div class="text-danger">{{ form.selfie_with_id.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.selfie_with_id.help_text }}</small>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="bi bi-exclamation-triangle"></i> Important Guidelines</h6>
+                        <ul class="mb-0">
+                            <li>All documents must be clear and readable</li>
+                            <li>Photos should be in JPEG, PNG, or PDF format</li>
+                            <li>Maximum file size: 5MB per document</li>
+                            <li>Ensure all details are visible and not cut off</li>
+                            <li>Your face should be clearly visible in the selfie</li>
+                            <li>Verification typically takes 24-48 hours</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Profile
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Submit KYC Documents
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

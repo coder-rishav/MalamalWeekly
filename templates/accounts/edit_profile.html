@@ -10,8 +10,27 @@
                 <h4 class="mb-0"><i class="bi bi-pencil"></i> Edit Profile</h4>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
+                    
+                    <h5 class="mb-3">Profile Photo</h5>
+                    <div class="mb-3 text-center">
+                        {% if profile_form.instance.profile_photo %}
+                            <img src="{{ profile_form.instance.profile_photo.url }}" alt="Current Photo" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid var(--primary-color);">
+                        {% else %}
+                            <i class="bi bi-person-circle mb-3" style="font-size: 7rem; color: #ccc;"></i>
+                        {% endif %}
+                        <div>
+                            <label class="form-label d-block">Upload New Photo</label>
+                            {{ profile_form.profile_photo }}
+                            {% if profile_form.profile_photo.errors %}
+                                <div class="text-danger">{{ profile_form.profile_photo.errors }}</div>
+                            {% endif %}
+                            <small class="form-text text-muted">Recommended: Square image, at least 200x200px</small>
+                        </div>
+                    </div>
+                    
+                    <hr>
                     
                     <h5 class="mb-3">Personal Information</h5>
                     <div class="row">

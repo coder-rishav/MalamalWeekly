@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}KYC Details - Malamal Weekly{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-shield-check"></i> KYC Verification Details</h4>
+            </div>
+            <div class="card-body">
+                <!-- KYC Status -->
+                <div class="alert 
+                    {% if profile.kyc_status == 'verified' %}alert-success
+                    {% elif profile.kyc_status == 'pending' %}alert-warning
+                    {% elif profile.kyc_status == 'rejected' %}alert-danger
+                    {% else %}alert-secondary{% endif %}">
+                    <h5>
+                        <i class="bi 
+                            {% if profile.kyc_status == 'verified' %}bi-check-circle-fill
+                            {% elif profile.kyc_status == 'pending' %}bi-clock-history
+                            {% elif profile.kyc_status == 'rejected' %}bi-x-circle-fill
+                            {% else %}bi-x-circle{% endif %}"></i>
+                        Status: {{ profile.get_kyc_status_display }}
+                    </h5>
+                    
+                    {% if profile.kyc_status == 'pending' %}
+                        <p class="mb-0">Your KYC documents are under review. We'll notify you within 24-48 hours.</p>
+                    {% elif profile.kyc_status == 'verified' %}
+                        <p class="mb-0">Your identity has been verified successfully! All features are now available.</p>
+                    {% elif profile.kyc_status == 'rejected' %}
+                        <p><strong>Rejection Reason:</strong> {{ profile.kyc_rejection_reason }}</p>
+                        <a href="{% url 'accounts:submit_kyc' %}" class="btn btn-warning">
+                            <i class="bi bi-upload"></i> Resubmit KYC Documents
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Submission Timeline -->
+                <div class="mb-4">
+                    <h5><i class="bi bi-calendar-event"></i> Timeline</h5>
+                    <ul class="list-unstyled">
+                        {% if profile.kyc_submitted_at %}
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i> 
+                            <strong>Submitted:</strong> {{ profile.kyc_submitted_at|date:"F d, Y - h:i A" }}
+                        </li>
+                        {% endif %}
+                        
+                        {% if profile.kyc_reviewed_at %}
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i> 
+                            <strong>Reviewed:</strong> {{ profile.kyc_reviewed_at|date:"F d, Y - h:i A" }}
+                            {% if profile.kyc_reviewed_by %}
+                                by {{ profile.kyc_reviewed_by.username }}
+                            {% endif %}
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <hr>
+
+                <!-- Personal Details -->
+                <h5><i class="bi bi-person-badge"></i> Personal Information</h5>
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <p class="text-muted mb-1">Full Name</p>
+                        <p><strong>{{ profile.full_name|default:"Not provided" }}</strong></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted mb-1">Aadhar Number</p>
+                        <p><strong>{{ profile.aadhar_number|default:"Not provided" }}</strong></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted mb-1">PAN Number</p>
+                        <p><strong>{{ profile.pan_number|default:"Not provided" }}</strong></p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Uploaded Documents -->
+                <h5><i class="bi bi-file-earmark-image"></i> Uploaded Documents</h5>
+                <div class="row">
+                    {% if profile.aadhar_front %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Aadhar Card (Front)</h6>
+                                <img src="{{ profile.aadhar_front.url }}" alt="Aadhar Front" class="img-fluid rounded" style="max-height: 200px; cursor: pointer;" onclick="viewImage('{{ profile.aadhar_front.url }}')">
+                                <p class="mt-2 mb-0">
+                                    <a href="{{ profile.aadhar_front.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if profile.aadhar_back %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Aadhar Card (Back)</h6>
+                                <img src="{{ profile.aadhar_back.url }}" alt="Aadhar Back" class="img-fluid rounded" style="max-height: 200px; cursor: pointer;" onclick="viewImage('{{ profile.aadhar_back.url }}')">
+                                <p class="mt-2 mb-0">
+                                    <a href="{{ profile.aadhar_back.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if profile.pan_card %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">PAN Card</h6>
+                                <img src="{{ profile.pan_card.url }}" alt="PAN Card" class="img-fluid rounded" style="max-height: 200px; cursor: pointer;" onclick="viewImage('{{ profile.pan_card.url }}')">
+                                <p class="mt-2 mb-0">
+                                    <a href="{{ profile.pan_card.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if profile.selfie_with_id %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Selfie with ID</h6>
+                                <img src="{{ profile.selfie_with_id.url }}" alt="Selfie" class="img-fluid rounded" style="max-height: 200px; cursor: pointer;" onclick="viewImage('{{ profile.selfie_with_id.url }}')">
+                                <p class="mt-2 mb-0">
+                                    <a href="{{ profile.selfie_with_id.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if not profile.aadhar_front and not profile.aadhar_back and not profile.pan_card and not profile.selfie_with_id %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-file-earmark-x" style="font-size: 3rem;"></i>
+                    <p class="mt-2">No documents uploaded yet</p>
+                </div>
+                {% endif %}
+
+                <div class="mt-4">
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Viewer Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Document Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="Document" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewImage(imageUrl) {
+    document.getElementById('modalImage').src = imageUrl;
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

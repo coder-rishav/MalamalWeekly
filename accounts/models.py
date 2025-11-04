@@ -22,6 +22,36 @@ class UserProfile(models.Model):
     total_winnings = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     total_spent = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     
+    # Profile Photo
+    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    
+    # KYC Information
+    KYC_STATUS_CHOICES = [
+        ('not_submitted', 'Not Submitted'),
+        ('pending', 'Pending Verification'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    kyc_status = models.CharField(max_length=20, choices=KYC_STATUS_CHOICES, default='not_submitted')
+    
+    # KYC Documents
+    full_name = models.CharField(max_length=200, blank=True, null=True, help_text="Full name as per ID")
+    aadhar_number = models.CharField(max_length=12, blank=True, null=True, help_text="Aadhar card number")
+    pan_number = models.CharField(max_length=10, blank=True, null=True, help_text="PAN card number")
+    
+    # KYC Document Uploads
+    aadhar_front = models.ImageField(upload_to='kyc_documents/aadhar/', blank=True, null=True)
+    aadhar_back = models.ImageField(upload_to='kyc_documents/aadhar/', blank=True, null=True)
+    pan_card = models.ImageField(upload_to='kyc_documents/pan/', blank=True, null=True)
+    selfie_with_id = models.ImageField(upload_to='kyc_documents/selfie/', blank=True, null=True, help_text="Selfie holding Aadhar/PAN")
+    
+    # KYC Submission and Review
+    kyc_submitted_at = models.DateTimeField(null=True, blank=True)
+    kyc_reviewed_at = models.DateTimeField(null=True, blank=True)
+    kyc_reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='kyc_reviews')
+    kyc_rejection_reason = models.TextField(blank=True, null=True)
+    
     # Account status
     is_verified = models.BooleanField(default=False)
     is_blocked = models.BooleanField(default=False)

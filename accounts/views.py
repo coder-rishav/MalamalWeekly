@@ -3,7 +3,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
-from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm, UserUpdateForm
+from django.utils import timezone
+from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm, UserUpdateForm, KYCSubmissionForm
 from .models import UserProfile
 from games.models import Leaderboard
 from transactions.models import Transaction
@@ -140,7 +141,7 @@ def edit_profile(request):
     
     if request.method == 'POST':
         user_form = UserUpdateForm(request.POST, instance=request.user)
-        profile_form = UserProfileForm(request.POST, instance=profile)
+        profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
         
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
@@ -157,3 +158,52 @@ def edit_profile(request):
     }
     
     return render(request, 'accounts/edit_profile.html', context)
+
+
+@login_required
+def submit_kyc(request):
+    """KYC submission view"""
+    profile = request.user.profile
+    
+    # Check if KYC is already verified
+    if profile.kyc_status == 'verified':
+        messages.info(request, 'Your KYC is already verified.')
+        return redirect('accounts:profile')
+    
+    # Check if KYC is pending
+    if profile.kyc_status == 'pending':
+        messages.info(request, 'Your KYC is under review. Please wait for admin approval.')
+        return redirect('accounts:profile')
+    
+    if request.method == 'POST':
+        form = KYCSubmissionForm(request.POST, request.FILES, instance=profile)
+        
+        if form.is_valid():
+            profile = form.save(commit=False)
+            profile.kyc_status = 'pending'
+            profile.kyc_submitted_at = timezone.now()
+            profile.save()
+            
+            messages.success(request, 'Your KYC documents have been submitted successfully. We will review them within 24-48 hours.')
+            return redirect('accounts:profile')
+    else:
+        form = KYCSubmissionForm(instance=profile)
+    
+    context = {
+        'form': form,
+        'profile': profile,
+    }
+    
+    return render(request, 'accounts/submit_kyc.html', context)
+
+
+@login_required
+def view_kyc(request):
+    """View KYC status and documents"""
+    profile = request.user.profile
+    
+    context = {
+        'profile': profile,
+    }
+    
+    return render(request, 'accounts/view_kyc.html', context)
