@@ -5,7 +5,8 @@ from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from datetime import timedelta
-from accounts.models import UserProfile
+import json
+from accounts.models import UserProfile, BanAppeal
 from games.models import Game, GameRound, UserEntry, Winner
 from transactions.models import Transaction, DepositRequest, WithdrawalRequest, PaymentGateway
 from django.contrib.auth.models import User
@@ -51,6 +52,10 @@ def admin_logout_view(request):
 @user_passes_test(is_admin, login_url='/admin-panel/login/')
 def admin_dashboard(request):
     """Main admin dashboard"""
+    from datetime import timedelta
+    from django.utils import timezone
+    from cms.models import Page
+    
     # Statistics
     total_users = User.objects.filter(is_staff=False).count()
     total_games = Game.objects.count()
@@ -77,12 +82,80 @@ def admin_dashboard(request):
     pending_deposits = DepositRequest.objects.filter(status='pending').count()
     pending_withdrawals = WithdrawalRequest.objects.filter(status='pending').count()
     
+    # KYC Statistics
+    kyc_pending = UserProfile.objects.filter(kyc_status='pending').count()
+    kyc_verified = UserProfile.objects.filter(kyc_status='verified').count()
+    kyc_rejected = UserProfile.objects.filter(kyc_status='rejected').count()
+    kyc_not_submitted = UserProfile.objects.filter(kyc_status='not_submitted').count()
+    
+    # Ban Appeals Statistics
+    pending_appeals = BanAppeal.objects.filter(status='pending').count()
+    approved_appeals = BanAppeal.objects.filter(status='approved').count()
+    rejected_appeals = BanAppeal.objects.filter(status='rejected').count()
+    
+    # Payment Gateway Statistics
+    active_gateways = PaymentGateway.objects.filter(is_active=True).count()
+    total_gateways = PaymentGateway.objects.count()
+    
+    # CMS Statistics
+    total_pages = Page.objects.count()
+    active_pages = Page.objects.filter(is_active=True).count()
+    
     # Recent activity
     recent_transactions = Transaction.objects.select_related('user').order_by('-created_at')[:10]
     recent_entries = UserEntry.objects.select_related('user', 'game_round__game').order_by('-created_at')[:10]
     
     # Active rounds
     active_rounds = GameRound.objects.filter(status='open').select_related('game').order_by('-scheduled_end')[:5]
+    
+    # Recent KYC submissions
+    recent_kyc = UserProfile.objects.filter(kyc_status='pending').select_related('user').order_by('-kyc_submitted_at')[:5]
+    
+    # Chart Data - Last 7 days transactions
+    last_7_days = timezone.now() - timedelta(days=7)
+    daily_transactions = []
+    daily_labels = []
+    
+    for i in range(6, -1, -1):
+        day = timezone.now() - timedelta(days=i)
+        day_start = day.replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = day_start + timedelta(days=1)
+        
+        deposits = Transaction.objects.filter(
+            transaction_type='deposit',
+            status='completed',
+            created_at__gte=day_start,
+            created_at__lt=day_end
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        withdrawals = Transaction.objects.filter(
+            transaction_type='withdrawal',
+            status='completed',
+            created_at__gte=day_start,
+            created_at__lt=day_end
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        game_entries = Transaction.objects.filter(
+            transaction_type='game_entry',
+            status='completed',
+            created_at__gte=day_start,
+            created_at__lt=day_end
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+        daily_transactions.append({
+            'date': day.strftime('%b %d'),
+            'deposits': float(deposits),
+            'withdrawals': float(withdrawals),
+            'game_entries': float(game_entries)
+        })
+        daily_labels.append(day.strftime('%b %d'))
+    
+    # User growth - Last 30 days
+    last_30_days = timezone.now() - timedelta(days=30)
+    new_users_count = User.objects.filter(
+        is_staff=False,
+        date_joined__gte=last_30_days
+    ).count()
     
     context = {
         'total_users': total_users,
@@ -97,6 +170,25 @@ def admin_dashboard(request):
         'recent_transactions': recent_transactions,
         'recent_entries': recent_entries,
         'active_rounds': active_rounds,
+        
+        # New statistics
+        'kyc_pending': kyc_pending,
+        'kyc_verified': kyc_verified,
+        'kyc_rejected': kyc_rejected,
+        'kyc_not_submitted': kyc_not_submitted,
+        'pending_appeals': pending_appeals,
+        'approved_appeals': approved_appeals,
+        'rejected_appeals': rejected_appeals,
+        'active_gateways': active_gateways,
+        'total_gateways': total_gateways,
+        'total_pages': total_pages,
+        'active_pages': active_pages,
+        'recent_kyc': recent_kyc,
+        'new_users_count': new_users_count,
+        
+        # Chart data
+        'daily_transactions': json.dumps(daily_transactions),
+        'daily_labels': daily_labels,
     }
     
     return render(request, 'custom_admin/dashboard.html', context)

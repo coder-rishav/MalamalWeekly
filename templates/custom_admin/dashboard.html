@@ -4,7 +4,7 @@
 {% block page_title %}Dashboard Overview{% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
+<!-- Statistics Cards Row 1 -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
         <div class="card stat-card border-primary">
@@ -13,6 +13,7 @@
                     <div>
                         <p class="text-muted mb-1">Total Users</p>
                         <h3 class="mb-0">{{ total_users }}</h3>
+                        <small class="text-success"><i class="bi bi-arrow-up"></i> {{ new_users_count }} new (30d)</small>
                     </div>
                     <i class="bi bi-people text-primary" style="font-size: 2.5rem;"></i>
                 </div>
@@ -63,6 +64,69 @@
     </div>
 </div>
 
+<!-- Statistics Cards Row 2 (New Features) -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card border-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1">Pending KYC</p>
+                        <h3 class="mb-0">{{ kyc_pending }}</h3>
+                        <small class="text-muted">{{ kyc_verified }} verified</small>
+                    </div>
+                    <i class="bi bi-shield-check text-info" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card border-secondary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1">Ban Appeals</p>
+                        <h3 class="mb-0">{{ pending_appeals }}</h3>
+                        <small class="text-muted">{{ approved_appeals }} approved</small>
+                    </div>
+                    <i class="bi bi-envelope-exclamation text-secondary" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1">Payment Gateways</p>
+                        <h3 class="mb-0">{{ active_gateways }}/{{ total_gateways }}</h3>
+                        <small class="text-muted">Active</small>
+                    </div>
+                    <i class="bi bi-credit-card text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1">CMS Pages</p>
+                        <h3 class="mb-0">{{ active_pages }}/{{ total_pages }}</h3>
+                        <small class="text-muted">Published</small>
+                    </div>
+                    <i class="bi bi-file-text text-success" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Financial Overview -->
 <div class="row mb-4">
     <div class="col-md-4 mb-3">
@@ -91,6 +155,39 @@
     </div>
 </div>
 
+<!-- Charts Section -->
+<div class="row mb-4">
+    <!-- Transaction Trends Chart -->
+    <div class="col-md-8 mb-3">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Transaction Trends (Last 7 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="transactionChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- KYC Status Chart -->
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> KYC Status</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="kycChart"></canvas>
+                <div class="mt-3">
+                    <small class="d-block"><span class="badge bg-warning">{{ kyc_pending }}</span> Pending</small>
+                    <small class="d-block"><span class="badge bg-success">{{ kyc_verified }}</span> Verified</small>
+                    <small class="d-block"><span class="badge bg-danger">{{ kyc_rejected }}</span> Rejected</small>
+                    <small class="d-block"><span class="badge bg-secondary">{{ kyc_not_submitted }}</span> Not Submitted</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Quick Actions -->
 <div class="row mb-4">
     <div class="col-md-12">
@@ -99,17 +196,29 @@
                 <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
             </div>
             <div class="card-body">
-                <a href="{% url 'custom_admin:deposit_requests' %}" class="btn btn-warning me-2">
+                <a href="{% url 'custom_admin:deposit_requests' %}" class="btn btn-warning me-2 mb-2">
                     <i class="bi bi-inbox"></i> Review Deposits ({{ pending_deposits }})
                 </a>
-                <a href="{% url 'custom_admin:withdrawal_requests' %}" class="btn btn-info me-2">
+                <a href="{% url 'custom_admin:withdrawal_requests' %}" class="btn btn-info me-2 mb-2">
                     <i class="bi bi-cash"></i> Review Withdrawals ({{ pending_withdrawals }})
                 </a>
-                <a href="{% url 'custom_admin:users_list' %}" class="btn btn-primary me-2">
+                <a href="{% url 'custom_admin:kyc_requests_list' %}" class="btn btn-primary me-2 mb-2">
+                    <i class="bi bi-shield-check"></i> Review KYC ({{ kyc_pending }})
+                </a>
+                <a href="{% url 'custom_admin:ban_appeals_list' %}?status=pending" class="btn btn-secondary me-2 mb-2">
+                    <i class="bi bi-envelope-exclamation"></i> Ban Appeals ({{ pending_appeals }})
+                </a>
+                <a href="{% url 'custom_admin:users_list' %}" class="btn btn-dark me-2 mb-2">
                     <i class="bi bi-people"></i> Manage Users
                 </a>
-                <a href="{% url 'custom_admin:games_management' %}" class="btn btn-success">
+                <a href="{% url 'custom_admin:games_management' %}" class="btn btn-success me-2 mb-2">
                     <i class="bi bi-controller"></i> Manage Games
+                </a>
+                <a href="{% url 'custom_admin:payment_gateways_list' %}" class="btn btn-info me-2 mb-2">
+                    <i class="bi bi-credit-card"></i> Payment Gateways
+                </a>
+                <a href="{% url 'custom_admin:cms_pages_list' %}" class="btn btn-success mb-2">
+                    <i class="bi bi-file-text"></i> CMS Pages
                 </a>
             </div>
         </div>
@@ -117,8 +226,40 @@
 </div>
 
 <div class="row">
+    <!-- Recent KYC Submissions -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-shield-check"></i> Recent KYC</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_kyc %}
+                <div class="list-group">
+                    {% for profile in recent_kyc %}
+                    <a href="{% url 'custom_admin:kyc_review' profile.user.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex align-items-center">
+                            {% if profile.profile_photo %}
+                            <img src="{{ profile.profile_photo.url }}" alt="{{ profile.user.username }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                            <i class="bi bi-person-circle me-2" style="font-size: 2rem;"></i>
+                            {% endif %}
+                            <div>
+                                <strong>{{ profile.user.username }}</strong>
+                                <br><small class="text-muted">{{ profile.kyc_submitted_at|timesince }} ago</small>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No pending KYC</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
     <!-- Active Rounds -->
-    <div class="col-md-6 mb-4">
+    <div class="col-md-4 mb-4">
         <div class="card">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0"><i class="bi bi-play-circle"></i> Active Rounds</h5>
@@ -149,7 +290,7 @@
     </div>
 
     <!-- Recent Transactions -->
-    <div class="col-md-6 mb-4">
+    <div class="col-md-4 mb-4">
         <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0"><i class="bi bi-receipt"></i> Recent Transactions</h5>
@@ -227,4 +368,96 @@
         </div>
     </div>
 </div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Transaction Trends Chart
+const transactionCtx = document.getElementById('transactionChart').getContext('2d');
+const transactionData = {{ daily_transactions|safe }};
+
+const transactionChart = new Chart(transactionCtx, {
+    type: 'line',
+    data: {
+        labels: transactionData.map(d => d.date),
+        datasets: [
+            {
+                label: 'Deposits',
+                data: transactionData.map(d => d.deposits),
+                borderColor: 'rgb(40, 167, 69)',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Withdrawals',
+                data: transactionData.map(d => d.withdrawals),
+                borderColor: 'rgb(220, 53, 69)',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Game Entries',
+                data: transactionData.map(d => d.game_entries),
+                borderColor: 'rgb(0, 123, 255)',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            title: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '₹' + value;
+                    }
+                }
+            }
+        }
+    }
+});
+
+// KYC Status Pie Chart
+const kycCtx = document.getElementById('kycChart').getContext('2d');
+const kycChart = new Chart(kycCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Pending', 'Verified', 'Rejected', 'Not Submitted'],
+        datasets: [{
+            data: [{{ kyc_pending }}, {{ kyc_verified }}, {{ kyc_rejected }}, {{ kyc_not_submitted }}],
+            backgroundColor: [
+                'rgb(255, 193, 7)',
+                'rgb(40, 167, 69)',
+                'rgb(220, 53, 69)',
+                'rgb(108, 117, 125)'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+</script>
 {% endblock %}
