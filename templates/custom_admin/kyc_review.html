@@ -46,9 +46,9 @@
             <div class="card-body">
                 <h6 class="card-title">Actions</h6>
                 {% if profile.kyc_status == 'pending' or profile.kyc_status == 'rejected' %}
-                <form method="post" action="{% url 'custom_admin:kyc_approve' kyc_user.id %}">
+                <form method="post" action="{% url 'custom_admin:kyc_approve' kyc_user.id %}" id="approveForm">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success w-100 mb-2" onclick="return confirm('Are you sure you want to approve this KYC?')">
+                    <button type="button" class="btn btn-success w-100 mb-2" onclick="approveKYC()">
                         <i class="bi bi-check-circle"></i> Approve KYC
                     </button>
                 </form>
@@ -291,6 +291,23 @@ function viewImage(imageUrl, title) {
     document.getElementById('imageModalTitle').textContent = title;
     const modal = new bootstrap.Modal(document.getElementById('imageModal'));
     modal.show();
+}
+
+function approveKYC() {
+    Swal.fire({
+        title: 'Approve KYC?',
+        text: 'User {{ kyc_user.username }} will be verified and can participate in games.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="bi bi-check-circle"></i> Yes, Approve',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('approveForm').submit();
+        }
+    });
 }
 </script>
 {% endblock %}
