@@ -9,7 +9,8 @@
 .masonry-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    grid-auto-rows: 10px;
+    grid-auto-rows: minmax(min-content, auto);
+    grid-auto-flow: dense;
     gap: 20px;
 }
 
@@ -18,12 +19,9 @@
     margin-bottom: 0;
 }
 
-/* Calculate grid row span based on content height */
-.masonry-item-1 { grid-row-end: span 20; } /* Small cards */
-.masonry-item-2 { grid-row-end: span 35; } /* Medium cards */
-.masonry-item-3 { grid-row-end: span 50; } /* Large cards */
-.masonry-item-4 { grid-row-end: span 70; } /* Extra large cards */
-.masonry-item-chart { grid-row-end: span 45; } /* Chart cards with proper height */
+.masonry-item .card {
+    height: 100%;
+}
 
 @media (min-width: 768px) {
     .masonry-container {
@@ -268,8 +266,8 @@
 <!-- Masonry Grid Container -->
 <div class="masonry-container">
     <!-- Recent KYC Submissions -->
-    <div class="masonry-item masonry-item-3">
-        <div class="card h-100">
+    <div class="masonry-item">
+        <div class="card">
             <div class="card-header bg-warning text-dark">
                 <h5 class="mb-0"><i class="bi bi-shield-check"></i> Recent KYC</h5>
             </div>
@@ -300,8 +298,8 @@
     </div>
     
     <!-- Active Rounds -->
-    <div class="masonry-item masonry-item-3">
-        <div class="card h-100">
+    <div class="masonry-item">
+        <div class="card">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0"><i class="bi bi-play-circle"></i> Active Rounds</h5>
             </div>
@@ -331,8 +329,8 @@
     </div>
 
     <!-- Recent Transactions -->
-    <div class="masonry-item masonry-item-4">
-        <div class="card h-100">
+    <div class="masonry-item">
+        <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0"><i class="bi bi-receipt"></i> Recent Transactions</h5>
             </div>
@@ -367,8 +365,8 @@
     </div>
 
     <!-- Recent Game Entries -->
-    <div class="masonry-item masonry-item-4">
-        <div class="card h-100">
+    <div class="masonry-item">
+        <div class="card">
             <div class="card-header bg-info text-white">
                 <h5 class="mb-0"><i class="bi bi-joystick"></i> Recent Game Entries</h5>
             </div>
