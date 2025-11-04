@@ -1865,3 +1865,32 @@ def exchange_rate_delete(request, rate_id):
     messages.success(request, f'Exchange rate from {from_code} to {to_code} has been deleted.')
     
     return redirect('custom_admin:exchange_rates_list')
+
+
+@login_required
+@user_passes_test(is_admin)
+def refresh_exchange_rates(request):
+    """Refresh exchange rates from live API"""
+    from transactions.currency_utils import update_exchange_rates_from_api, CurrencyManager
+    
+    result = update_exchange_rates_from_api()
+    
+    if result['success']:
+        # Build success message with updated rates
+        updated_list = ', '.join([f"{item['currency']} ({item['symbol']}{item['rate']:.2f})" 
+                                  for item in result['updated'][:5]])  # Show first 5
+        if len(result['updated']) > 5:
+            updated_list += f" and {len(result['updated']) - 5} more"
+        
+        messages.success(request, f'✓ Exchange rates updated successfully! {updated_list}')
+        
+        if result['failed']:
+            failed_list = ', '.join([item['currency'] for item in result['failed']])
+            messages.warning(request, f'Failed to update: {failed_list}')
+    else:
+        messages.error(request, f'Failed to update exchange rates: {result["message"]}')
+    
+    # Clear cache
+    CurrencyManager.clear_cache()
+    
+    return redirect('custom_admin:exchange_rates_list')

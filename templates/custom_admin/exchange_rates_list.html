@@ -7,9 +7,16 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-arrow-left-right me-2"></i>Manage Exchange Rates</h2>
-        <a href="{% url 'custom_admin:exchange_rate_create' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i>Add New Rate
-        </a>
+        <div>
+            <a href="{% url 'custom_admin:refresh_exchange_rates' %}" 
+               class="btn btn-success me-2"
+               onclick="event.preventDefault(); if(confirm('Fetch latest exchange rates from live API? This will update rates for all active currencies.')) { window.location.href = this.href; }">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh Rates from API
+            </a>
+            <a href="{% url 'custom_admin:exchange_rate_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>Add New Rate
+            </a>
+        </div>
     </div>
 
     <!-- Statistics Cards -->
@@ -44,6 +51,13 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Info Alert -->
+    <div class="alert alert-info mb-4">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Live Exchange Rates:</strong> Click "Refresh Rates from API" to fetch current rates from Frankfurter API (European Central Bank data). 
+        This will create new rates for all active currencies. Historical transactions will keep their original rates.
     </div>
 
     <!-- Filters -->
@@ -131,11 +145,10 @@
                                 </small>
                             </td>
                             <td>
-                                {% widthratio 1 rate.rate 1 as reverse_rate %}
                                 <small class="text-muted">
-                                    {% with reverse=1|floatformat:6 %}
-                                    {{ reverse|floatdiv:rate.rate|floatformat:6 }}
-                                    {% endwith %}
+                                    {% widthratio 1000000 rate.rate 1 as reverse_scaled %}
+                                    {% widthratio reverse_scaled 1 1000000 as reverse_rate %}
+                                    {{ reverse_rate|floatformat:6 }}
                                 </small>
                             </td>
                             <td>

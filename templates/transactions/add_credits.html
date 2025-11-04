@@ -259,9 +259,19 @@ document.querySelectorAll('.gateway-card').forEach(card => {
 });
 
 function initiatePayment(gatewayId) {
+    // Check if non-INR currency
+    const currencyCode = '{{ currency_code }}';
+    const isForeignCurrency = currencyCode !== 'INR';
+    
+    let confirmMessage = `Proceed with payment of <strong>${document.getElementById('summaryTotal').textContent}</strong>?`;
+    
+    if (isForeignCurrency) {
+        confirmMessage += '<br><small class="text-muted">Note: Payment will be processed in INR at current exchange rate.</small>';
+    }
+    
     Swal.fire({
         title: 'Confirm Payment',
-        html: `Proceed with payment of <strong>${document.getElementById('summaryTotal').textContent}</strong>?`,
+        html: confirmMessage,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#667eea',

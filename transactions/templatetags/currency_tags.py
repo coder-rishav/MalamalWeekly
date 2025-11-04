@@ -47,15 +47,24 @@ def user_currency(user):
 
 
 @register.simple_tag(name='format_user_amount')
-def format_user_amount(amount, user):
+def format_user_amount(amount, user, from_currency='INR'):
     """
-    Format amount in user's preferred currency
+    Format amount in user's preferred currency with conversion
     Usage: {% format_user_amount 1000 request.user %}
+    
+    Args:
+        amount: The amount to format
+        user: The user object
+        from_currency: The currency the amount is currently in (default: 'INR')
     """
     currency = CurrencyManager.get_user_currency(user)
-    if currency:
+    if currency and currency.code != from_currency:
+        # Convert from base currency (INR) to user's currency
+        converted_amount = CurrencyManager.convert(amount, from_currency, currency.code)
+        return currency.format_amount(converted_amount)
+    elif currency:
         return currency.format_amount(amount)
-    return str(amount)
+    return f'₹{amount}'
 
 
 @register.inclusion_tag('transactions/currency_selector.html')

@@ -33,15 +33,15 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <strong>Amount:</strong><br>
-                                <span class="h5 text-primary">₹{{ amount }}</span>
+                                <span class="h5 text-primary">{{ currency_symbol }}{{ amount|floatformat:2 }}</span>
                             </div>
                             <div class="col-md-4">
                                 <strong>Gateway Fee:</strong><br>
-                                <span class="text-muted">₹{{ fee }}</span>
+                                <span class="text-muted">{{ currency_symbol }}{{ fee|floatformat:2 }}</span>
                             </div>
                             <div class="col-md-4">
                                 <strong>Total Paid:</strong><br>
-                                <span class="h5 text-success">₹{{ total_amount }}</span>
+                                <span class="h5 text-success">{{ currency_symbol }}{{ total_amount|floatformat:2 }}</span>
                             </div>
                         </div>
                         <hr>
@@ -54,7 +54,7 @@
                 
                 <!-- Success Animation -->
                 <div class="alert alert-success">
-                    <i class="bi bi-wallet2"></i> ₹{{ amount }} has been added to your wallet!
+                    <i class="bi bi-wallet2"></i> {{ currency_symbol }}{{ amount|floatformat:2 }} has been added to your wallet!
                 </div>
                 
                 <!-- Action Buttons -->

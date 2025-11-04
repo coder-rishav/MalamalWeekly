@@ -47,9 +47,9 @@
                         <td>#{{ request.id }}</td>
                         <td>
                             <strong>{{ request.user.username }}</strong><br>
-                            <small class="text-muted">Balance: ₹{{ request.user.profile.wallet_balance }}</small>
+                            <small class="text-muted">Balance: {% load currency_tags %}{% format_user_amount request.user.profile.wallet_balance request.user %}</small>
                         </td>
-                        <td><strong class="text-danger">₹{{ request.amount }}</strong></td>
+                        <td><strong class="text-danger">{% if request.currency %}{{ request.currency.symbol }}{% else %}₹{% endif %}{{ request.amount }}</strong></td>
                         <td>
                             <strong>{{ request.bank_name }}</strong><br>
                             <small>Acc: {{ request.account_number }}</small><br>
@@ -69,7 +69,7 @@
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'custom_admin:approve_withdrawal' request.id %}" 
                                    class="btn btn-success"
-                                   onclick="event.preventDefault(); Swal.fire({title: 'Approve Withdrawal?', html: 'Approve withdrawal of <strong>₹{{ request.amount }}</strong> for <strong>{{ request.user.username }}</strong>?', icon: 'question', showCancelButton: true, confirmButtonColor: '#28a745', cancelButtonColor: '#d33', confirmButtonText: 'Yes, approve it!'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
+                                   onclick="event.preventDefault(); Swal.fire({title: 'Approve Withdrawal?', html: 'Approve withdrawal of <strong>{% if request.currency %}{{ request.currency.symbol }}{% else %}₹{% endif %}{{ request.amount }}</strong> for <strong>{{ request.user.username }}</strong>?', icon: 'question', showCancelButton: true, confirmButtonColor: '#28a745', cancelButtonColor: '#d33', confirmButtonText: 'Yes, approve it!'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
                                     <i class="bi bi-check-circle"></i> Approve
                                 </a>
                                 <a href="{% url 'custom_admin:reject_withdrawal' request.id %}" 

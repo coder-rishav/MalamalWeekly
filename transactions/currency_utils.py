@@ -257,3 +257,162 @@ def set_exchange_rates_to_inr():
             continue
     
     return created_rates
+
+
+def fetch_live_exchange_rates():
+    """
+    Fetch live exchange rates from external API
+    Uses Frankfurter API (free, no API key) and ExchangeRate-API as backup
+    Returns dict with currency codes as keys and rates (to INR) as values
+    """
+    import requests
+    from decimal import Decimal
+    
+    rates = {}
+    
+    # Try Frankfurter API first (European Central Bank data, free)
+    try:
+        # Get rates with EUR as base
+        response = requests.get('https://api.frankfurter.app/latest?from=EUR', timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            eur_rates = data.get('rates', {})
+            
+            # Get INR rate relative to EUR
+            if 'INR' in eur_rates:
+                inr_per_eur = Decimal(str(eur_rates['INR']))
+                
+                # Calculate each currency's rate to INR
+                for currency_code, rate_to_eur in eur_rates.items():
+                    if currency_code != 'INR':
+                        # Convert: 1 CURRENCY = (inr_per_eur / rate_to_eur) INR
+                        rate_to_inr = inr_per_eur / Decimal(str(rate_to_eur))
+                        rates[currency_code] = rate_to_inr
+                
+                # EUR to INR
+                rates['EUR'] = inr_per_eur
+                return rates
+    except Exception as e:
+        print(f"Frankfurter API error: {e}")
+    
+    # Fallback: Try ExchangeRate-API (free tier: 1500 requests/month)
+    try:
+        # Get rates with INR as base
+        response = requests.get('https://api.exchangerate-api.com/v4/latest/INR', timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            inr_rates = data.get('rates', {})
+            
+            # Convert to "X to INR" format (inverse of the API response)
+            for currency_code, rate_from_inr in inr_rates.items():
+                if currency_code != 'INR' and rate_from_inr > 0:
+                    # API gives: 1 INR = X USD, we need: 1 USD = Y INR
+                    rate_to_inr = Decimal('1.0') / Decimal(str(rate_from_inr))
+                    rates[currency_code] = rate_to_inr
+            
+            return rates
+    except Exception as e:
+        print(f"ExchangeRate-API error: {e}")
+    
+    return rates
+
+
+def update_exchange_rates_from_api():
+    """
+    Update exchange rates for all active currencies from live API
+    Returns: dict with success status and updated currencies info
+    """
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    result = {
+        'success': False,
+        'updated': [],
+        'failed': [],
+        'message': ''
+    }
+    
+    # Fetch live rates
+    live_rates = fetch_live_exchange_rates()
+    
+    if not live_rates:
+        result['message'] = 'Failed to fetch rates from external APIs'
+        return result
+    
+    # Get INR base currency
+    try:
+        inr = Currency.objects.get(code='INR', is_base_currency=True)
+    except Currency.DoesNotExist:
+        result['message'] = 'INR base currency not found'
+        return result
+    
+    # Get all active currencies
+    active_currencies = Currency.objects.filter(is_active=True).exclude(code='INR')
+    
+    now = timezone.now()
+    
+    for currency in active_currencies:
+        if currency.code in live_rates:
+            rate_value = live_rates[currency.code]
+            
+            try:
+                # Deactivate old rates (set effective_until)
+                old_rates = ExchangeRate.objects.filter(
+                    from_currency=currency,
+                    to_currency=inr,
+                    is_active=True,
+                    effective_until__isnull=True
+                )
+                old_rates.update(effective_until=now)
+                
+                # Create new rate
+                new_rate = ExchangeRate.objects.create(
+                    from_currency=currency,
+                    to_currency=inr,
+                    rate=rate_value,
+                    source='api_frankfurter',
+                    is_active=True,
+                    effective_from=now,
+                    effective_until=None
+                )
+                
+                # Also create/update reverse rate (INR to other currency)
+                old_reverse = ExchangeRate.objects.filter(
+                    from_currency=inr,
+                    to_currency=currency,
+                    is_active=True,
+                    effective_until__isnull=True
+                )
+                old_reverse.update(effective_until=now)
+                
+                ExchangeRate.objects.create(
+                    from_currency=inr,
+                    to_currency=currency,
+                    rate=Decimal('1.0') / rate_value,
+                    source='api_frankfurter',
+                    is_active=True,
+                    effective_from=now,
+                    effective_until=None
+                )
+                
+                result['updated'].append({
+                    'currency': currency.code,
+                    'rate': float(rate_value),
+                    'symbol': currency.symbol
+                })
+                
+            except Exception as e:
+                result['failed'].append({
+                    'currency': currency.code,
+                    'error': str(e)
+                })
+        else:
+            result['failed'].append({
+                'currency': currency.code,
+                'error': 'Rate not available in API response'
+            })
+    
+    result['success'] = len(result['updated']) > 0
+    result['message'] = f"Updated {len(result['updated'])} currencies, {len(result['failed'])} failed"
+    
+    return result

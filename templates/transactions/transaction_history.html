@@ -49,9 +49,9 @@
                                 </td>
                                 <td>
                                     {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'winning' or transaction.transaction_type == 'bonus' %}
-                                    <span class="text-success fw-bold">+₹{{ transaction.amount }}</span>
+                                    <span class="text-success fw-bold">+{% if transaction.currency %}{{ transaction.currency.symbol }}{% else %}₹{% endif %}{{ transaction.amount }}</span>
                                     {% else %}
-                                    <span class="text-danger fw-bold">-₹{{ transaction.amount }}</span>
+                                    <span class="text-danger fw-bold">-{% if transaction.currency %}{{ transaction.currency.symbol }}{% else %}₹{% endif %}{{ transaction.amount }}</span>
                                     {% endif %}
                                 </td>
                                 <td>
@@ -59,7 +59,7 @@
                                         {{ transaction.get_status_display }}
                                     </span>
                                 </td>
-                                <td>₹{{ transaction.balance_after }}</td>
+                                <td>{% load currency_tags %}{% format_user_amount transaction.balance_after user %}</td>
                                 <td>{{ transaction.created_at|date:"M d, Y H:i" }}</td>
                                 <td>{{ transaction.description|default:"-" }}</td>
                             </tr>

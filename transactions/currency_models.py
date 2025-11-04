@@ -110,9 +110,30 @@ class ExchangeRate(models.Model):
     
     @classmethod
     def get_current_rate(cls, from_currency, to_currency):
-        """Get current active exchange rate"""
+        """Get current active exchange rate
+        
+        Args:
+            from_currency: Currency code string (e.g., 'USD') or Currency object
+            to_currency: Currency code string (e.g., 'INR') or Currency object
+            
+        Returns:
+            Decimal: Exchange rate or None if not found
+        """
+        # Convert currency codes to Currency objects if strings are passed
+        if isinstance(from_currency, str):
+            try:
+                from_currency = Currency.objects.get(code=from_currency)
+            except Currency.DoesNotExist:
+                return None
+        
+        if isinstance(to_currency, str):
+            try:
+                to_currency = Currency.objects.get(code=to_currency)
+            except Currency.DoesNotExist:
+                return None
+        
         # If same currency, return 1
-        if from_currency == to_currency:
+        if from_currency.id == to_currency.id:
             return Decimal('1.0')
         
         now = timezone.now()

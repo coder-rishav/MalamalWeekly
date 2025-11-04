@@ -74,4 +74,5 @@ urlpatterns = [
     path('exchange-rates/create/', views.exchange_rate_create, name='exchange_rate_create'),
     path('exchange-rates/<int:rate_id>/edit/', views.exchange_rate_edit, name='exchange_rate_edit'),
     path('exchange-rates/<int:rate_id>/delete/', views.exchange_rate_delete, name='exchange_rate_delete'),
+    path('exchange-rates/refresh/', views.refresh_exchange_rates, name='refresh_exchange_rates'),
 ]

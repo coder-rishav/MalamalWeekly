@@ -274,13 +274,14 @@
                         <a class="nav-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:payment_gateways_list' %}" data-title="Payment Gateways">
                             <i class="bi bi-credit-card"></i> <span class="sidebar-text">Payment Gateways</span>
                         </a>
-                        
-                        <!-- Currency Management -->
-                        <a class="nav-link {% if 'currenc' in request.resolver_match.url_name or 'exchange' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:currencies_list' %}" data-title="Currencies">
-                            <i class="bi bi-currency-exchange"></i> <span class="sidebar-text">Currencies</span>
+                        <a class="nav-link {% if 'currencies_list' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:currencies_list' %}" data-title="Currencies">
+                            <i class="bi bi-currency-dollar"></i> <span class="sidebar-text">Currencies</span>
                             {% if total_currencies_count %}
                             <span class="badge bg-info text-white">{{ total_currencies_count }}</span>
                             {% endif %}
+                        </a>
+                        <a class="nav-link {% if 'exchange_rates' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:exchange_rates_list' %}" data-title="Exchange Rates">
+                            <i class="bi bi-arrow-left-right"></i> <span class="sidebar-text">Exchange Rates</span>
                         </a>
                         
                         <hr style="border-color: rgba(255,255,255,0.2);">

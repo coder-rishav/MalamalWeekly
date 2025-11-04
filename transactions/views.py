@@ -73,8 +73,17 @@ def create_payment_order(request):
     """Create payment order via AJAX with multi-currency support"""
     try:
         data = json.loads(request.body)
-        amount = float(data.get('amount'))
-        gateway_id = int(data.get('gateway_id'))
+        
+        # Validate and parse input data
+        try:
+            amount = float(data.get('amount'))
+            gateway_id = int(data.get('gateway_id'))
+        except (ValueError, TypeError) as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Invalid input data: {str(e)}'
+            })
+        
         currency_code = data.get('currency', 'INR')
         
         # Get currency manager
@@ -83,7 +92,13 @@ def create_payment_order(request):
         
         # Get user's currency
         from .currency_models import Currency
-        currency = Currency.objects.get(code=currency_code)
+        try:
+            currency = Currency.objects.get(code=currency_code, is_active=True)
+        except Currency.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': f'Currency {currency_code} not found in system or is inactive'
+            })
         
         # Validate amount
         gateway = get_object_or_404(PaymentGateway, id=gateway_id, is_active=True)
@@ -145,7 +160,7 @@ def create_payment_order(request):
             currency=currency,
             amount_in_base=amount_in_inr,
             exchange_rate=exchange_rate,
-            payment_method='online',
+            payment_method='upi',  # Default to UPI for online payments
             payment_gateway=gateway,
             status='pending'
         )
@@ -214,11 +229,30 @@ def payment_success(request):
     
     try:
         transaction = Transaction.objects.get(reference_id=transaction_id, user=request.user)
+        
+        # Determine display currency and amounts
+        if transaction.currency:
+            # Transaction has currency info - use it for display
+            currency_symbol = transaction.currency.symbol
+            currency_code = transaction.currency.code
+            display_amount = float(transaction.amount)
+            display_fee = float(transaction.fee_amount)
+            display_total = float(transaction.total_amount)
+        else:
+            # No currency set, default to INR
+            currency_symbol = '₹'
+            currency_code = 'INR'
+            display_amount = float(transaction.amount)
+            display_fee = float(transaction.fee_amount)
+            display_total = float(transaction.total_amount)
+        
         context = {
             'transaction': transaction,
-            'amount': transaction.amount,
-            'total_amount': transaction.total_amount,
-            'fee': transaction.fee_amount,
+            'amount': display_amount,
+            'total_amount': display_total,
+            'fee': display_fee,
+            'currency_symbol': currency_symbol,
+            'currency_code': currency_code,
         }
         return render(request, 'transactions/payment_success.html', context)
     except Transaction.DoesNotExist:

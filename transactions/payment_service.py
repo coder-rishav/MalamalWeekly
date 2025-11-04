@@ -51,7 +51,7 @@ class PaymentService:
         current_balance = user.profile.wallet_balance
         
         # Extract currency info from metadata if provided
-        currency = None
+        currency_obj = None
         exchange_rate = None
         original_amount = amount
         
@@ -59,29 +59,53 @@ class PaymentService:
             currency_code = metadata.get('currency', 'INR')
             from .currency_models import Currency
             try:
-                currency = Currency.objects.get(code=currency_code)
+                currency_obj = Currency.objects.get(code=currency_code)
             except Currency.DoesNotExist:
                 pass
             
             exchange_rate = metadata.get('exchange_rate')
             original_amount = metadata.get('original_amount', amount)
         
-        # Create transaction record
-        transaction = Transaction.objects.create(
-            user=user,
-            transaction_type='deposit',
-            amount=fee_calc['amount'],
-            fee_amount=fee_calc['fee'],
-            total_amount=fee_calc['total'],
-            currency=currency,
-            amount_in_base=fee_calc['amount'],  # This is already in INR
-            exchange_rate=exchange_rate,
-            payment_gateway=self.gateway,
-            status='pending',
-            balance_before=current_balance,
-            balance_after=current_balance,  # Will be updated when payment completes
-            description=description
-        )
+        # For multi-currency transactions:
+        # - amount: store in user's original currency (e.g., $100)
+        # - amount_in_base: store in INR for accounting (e.g., ₹8333.33)
+        # - fee_calc is calculated on INR amount for payment gateway
+        
+        if currency_obj and currency_obj.code != 'INR' and original_amount != amount:
+            # User is paying in foreign currency
+            # Store original amounts for display, INR amounts for processing
+            transaction = Transaction.objects.create(
+                user=user,
+                transaction_type='deposit',
+                amount=Decimal(str(original_amount)),  # Original USD amount
+                fee_amount=Decimal('0'),  # Fee shown as 0 in user currency (gateway fees are in INR)
+                total_amount=Decimal(str(original_amount)),  # Total in USD
+                currency=currency_obj,
+                amount_in_base=fee_calc['amount'],  # INR amount for payment
+                exchange_rate=exchange_rate,
+                payment_gateway=self.gateway,
+                status='pending',
+                balance_before=current_balance,
+                balance_after=current_balance,
+                description=description
+            )
+        else:
+            # INR transaction
+            transaction = Transaction.objects.create(
+                user=user,
+                transaction_type='deposit',
+                amount=fee_calc['amount'],
+                fee_amount=fee_calc['fee'],
+                total_amount=fee_calc['total'],
+                currency=currency_obj,
+                amount_in_base=fee_calc['amount'],
+                exchange_rate=exchange_rate,
+                payment_gateway=self.gateway,
+                status='pending',
+                balance_before=current_balance,
+                balance_after=current_balance,
+                description=description
+            )
         
         # Route to appropriate provider
         if self.gateway.provider == 'razorpay':
@@ -117,14 +141,28 @@ class PaymentService:
                 self.credentials['api_secret']
             ))
             
+            # For multi-currency: use amount_in_base (INR) for Razorpay
+            # For INR: use total_amount
+            if transaction.currency and transaction.currency.code != 'INR' and transaction.amount_in_base:
+                # Multi-currency transaction - charge INR amount
+                razorpay_amount = int(transaction.amount_in_base * 100)  # INR amount in paise
+                # Add description showing original currency
+                description = f"{transaction.description} ({transaction.currency.symbol}{transaction.amount:.2f} {transaction.currency.code})"
+            else:
+                # INR transaction
+                razorpay_amount = int(transaction.total_amount * 100)  # Amount in paise
+                description = transaction.description
+            
             # Create order
             order_data = {
-                'amount': int(transaction.total_amount * 100),  # Amount in paise
+                'amount': razorpay_amount,
                 'currency': 'INR',
                 'receipt': transaction.reference_id,
                 'notes': {
                     'user_id': transaction.user.id,
-                    'username': transaction.user.username
+                    'username': transaction.user.username,
+                    'original_currency': transaction.currency.code if transaction.currency else 'INR',
+                    'original_amount': str(transaction.amount) if transaction.currency else str(transaction.total_amount)
                 }
             }
             
@@ -135,22 +173,28 @@ class PaymentService:
             transaction.payment_details = json.dumps(order)
             transaction.save()
             
+            # For Razorpay, we need to send the INR amount (razorpay_amount / 100)
+            # But also send the original currency info for display
             return {
                 'success': True,
                 'provider': 'razorpay',
                 'order_id': order['id'],
-                'amount': float(transaction.amount),
-                'fee': float(transaction.fee_amount),
-                'total': float(transaction.total_amount),
+                'amount': float(transaction.amount_in_base) if transaction.amount_in_base else float(transaction.amount),
+                'fee': 0,  # Fee is included in Razorpay amount
+                'total': float(transaction.amount_in_base) if transaction.amount_in_base else float(transaction.total_amount),
                 'currency': 'INR',
                 'transaction_id': transaction.reference_id,
                 'key': self.credentials['api_key'],
                 'name': settings.SITE_NAME if hasattr(settings, 'SITE_NAME') else 'Malamal Weekly',
-                'description': transaction.description,
+                'description': description,
                 'prefill': {
                     'name': transaction.user.get_full_name() or transaction.user.username,
                     'email': transaction.user.email,
                 },
+                # Add original currency info for frontend display
+                'original_amount': float(transaction.amount),
+                'original_currency': transaction.currency.code if transaction.currency else 'INR',
+                'original_currency_symbol': transaction.currency.symbol if transaction.currency else '₹',
             }
             
         except ImportError:
@@ -387,17 +431,25 @@ class PaymentService:
             if payment_details:
                 transaction.payment_details = json.dumps(payment_details)
             
-            # Credit user wallet
+            # Credit user wallet (always in INR - base currency)
             user_profile = transaction.user.profile
-            user_profile.add_credits(transaction.amount)
+            # Use amount_in_base if available (for multi-currency), otherwise use amount
+            credit_amount = transaction.amount_in_base if transaction.amount_in_base else transaction.amount
+            user_profile.add_credits(credit_amount)
             
             # Update balance_after
             transaction.balance_after = user_profile.wallet_balance
             transaction.save()
             
+            # Show message in user's currency if available
+            if transaction.currency:
+                message = f'{transaction.currency.symbol}{transaction.amount:.2f} credited to your wallet'
+            else:
+                message = f'₹{transaction.amount} credited to your wallet'
+            
             return {
                 'success': True,
-                'message': f'₹{transaction.amount} credited to your wallet'
+                'message': message
             }
             
         except Exception as e:

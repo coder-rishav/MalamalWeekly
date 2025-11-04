@@ -546,7 +546,8 @@
                         </li>
                         <li class="nav-item">
                             <span class="nav-link wallet-badge">
-                                ₹{{ user.profile.wallet_balance }}
+                                {% load currency_tags %}
+                                {% format_user_amount user.profile.wallet_balance user %}
                             </span>
                         </li>
                         <li class="nav-item dropdown">

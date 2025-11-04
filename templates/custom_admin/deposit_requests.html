@@ -50,7 +50,7 @@
                             <strong>{{ request.user.username }}</strong><br>
                             <small class="text-muted">{{ request.user.email }}</small>
                         </td>
-                        <td><strong class="text-success">₹{{ request.amount }}</strong></td>
+                        <td><strong class="text-success">{% if request.currency %}{{ request.currency.symbol }}{% else %}₹{% endif %}{{ request.amount }}</strong></td>
                         <td>
                             <span class="badge bg-secondary">{{ request.get_payment_method_display }}</span>
                         </td>
@@ -74,7 +74,7 @@
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'custom_admin:approve_deposit' request.id %}" 
                                    class="btn btn-success"
-                                   onclick="event.preventDefault(); Swal.fire({title: 'Approve Deposit?', html: 'Approve deposit of <strong>₹{{ request.amount }}</strong> for <strong>{{ request.user.username }}</strong>?', icon: 'question', showCancelButton: true, confirmButtonColor: '#28a745', cancelButtonColor: '#d33', confirmButtonText: 'Yes, approve it!'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
+                                   onclick="event.preventDefault(); Swal.fire({title: 'Approve Deposit?', html: 'Approve deposit of <strong>{% if request.currency %}{{ request.currency.symbol }}{% else %}₹{% endif %}{{ request.amount }}</strong> for <strong>{{ request.user.username }}</strong>?', icon: 'question', showCancelButton: true, confirmButtonColor: '#28a745', cancelButtonColor: '#d33', confirmButtonText: 'Yes, approve it!'}).then((result) => {if (result.isConfirmed) window.location.href = this.href;});">
                                     <i class="bi bi-check-circle"></i> Approve
                                 </a>
                                 <a href="{% url 'custom_admin:reject_deposit' request.id %}" 
