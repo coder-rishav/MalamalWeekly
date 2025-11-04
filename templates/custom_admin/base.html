@@ -58,98 +58,199 @@
             background: #dc3545;
             color: #fff;
         }
+        
+        /* Sidebar Toggle Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            width: 250px;
+        }
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        .sidebar.collapsed .sidebar-text,
+        .sidebar.collapsed .badge,
+        .sidebar.collapsed hr {
+            display: none;
+        }
+        .sidebar.collapsed .nav-link {
+            padding: 12px;
+            text-align: center;
+            justify-content: center;
+        }
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+            font-size: 1.5rem;
+        }
+        .sidebar.collapsed h4 {
+            font-size: 1.5rem;
+        }
+        .sidebar.collapsed h4 .sidebar-text {
+            display: none;
+        }
+        .sidebar-toggle {
+            position: fixed;
+            left: 220px;
+            top: 20px;
+            z-index: 1001;
+            background: rgba(102, 126, 234, 0.9);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+        }
+        .sidebar-toggle:hover {
+            background: rgba(118, 75, 162, 0.9);
+        }
+        .sidebar.collapsed ~ .sidebar-toggle {
+            left: 40px;
+        }
+        .main-content {
+            margin-left: 250px;
+            transition: all 0.3s ease;
+            width: calc(100% - 250px);
+        }
+        .main-content.expanded {
+            margin-left: 70px;
+            width: calc(100% - 70px);
+        }
+        /* Tooltip for collapsed sidebar */
+        .sidebar.collapsed .nav-link {
+            position: relative;
+        }
+        .sidebar.collapsed .nav-link:hover::after {
+            content: attr(data-title);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+            margin-left: 10px;
+            font-size: 0.875rem;
+            z-index: 1002;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            .sidebar-toggle {
+                left: 40px;
+            }
+            .main-content {
+                margin-left: 70px;
+                width: calc(100% - 70px);
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
+    <div class="container-fluid p-0">
+        <div class="row g-0">
             <!-- Sidebar -->
-            <div class="col-md-2 sidebar p-0">
+            <div class="sidebar p-0" id="sidebar">
                 <div class="p-3">
                     <h4 class="text-center mb-4">
-                        <i class="bi bi-shield-check"></i> Admin Panel
+                        <i class="bi bi-shield-check"></i> <span class="sidebar-text">Admin Panel</span>
                     </h4>
                     <hr style="border-color: rgba(255,255,255,0.2);">
                     
                     <nav class="nav flex-column">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'custom_admin:dashboard' %}">
-                            <i class="bi bi-speedometer2"></i> Dashboard
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'custom_admin:dashboard' %}" data-title="Dashboard">
+                            <i class="bi bi-speedometer2"></i> <span class="sidebar-text">Dashboard</span>
                         </a>
-                        <a class="nav-link {% if 'users' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:users_list' %}">
-                            <i class="bi bi-people"></i> Users
+                        <a class="nav-link {% if 'users' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:users_list' %}" data-title="Users">
+                            <i class="bi bi-people"></i> <span class="sidebar-text">Users</span>
                             {% if total_users_count %}
                             <span class="badge bg-info text-dark">{{ total_users_count }}</span>
                             {% endif %}
                         </a>
-                        <a class="nav-link {% if 'deposit' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:deposit_requests' %}">
-                            <i class="bi bi-cash-stack"></i> Deposits
+                        <a class="nav-link {% if 'deposit' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:deposit_requests' %}" data-title="Deposits">
+                            <i class="bi bi-cash-stack"></i> <span class="sidebar-text">Deposits</span>
                             {% if pending_deposits_count %}
                             <span class="badge bg-warning text-dark">{{ pending_deposits_count }}</span>
                             {% endif %}
                         </a>
-                        <a class="nav-link {% if 'withdrawal' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:withdrawal_requests' %}">
-                            <i class="bi bi-wallet2"></i> Withdrawals
+                        <a class="nav-link {% if 'withdrawal' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:withdrawal_requests' %}" data-title="Withdrawals">
+                            <i class="bi bi-wallet2"></i> <span class="sidebar-text">Withdrawals</span>
                             {% if pending_withdrawals_count %}
                             <span class="badge bg-warning text-dark">{{ pending_withdrawals_count }}</span>
                             {% endif %}
                         </a>
-                        <a class="nav-link {% if 'kyc' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:kyc_requests_list' %}">
-                            <i class="bi bi-shield-check"></i> KYC Verification
+                        <a class="nav-link {% if 'kyc' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:kyc_requests_list' %}" data-title="KYC Verification">
+                            <i class="bi bi-shield-check"></i> <span class="sidebar-text">KYC Verification</span>
                             {% if pending_kyc_count %}
                             <span class="badge bg-warning text-dark">{{ pending_kyc_count }}</span>
                             {% endif %}
                         </a>
-                        <a class="nav-link {% if 'games' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:games_management' %}">
-                            <i class="bi bi-controller"></i> Games
+                        <a class="nav-link {% if 'games' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:games_management' %}" data-title="Games">
+                            <i class="bi bi-controller"></i> <span class="sidebar-text">Games</span>
                             {% if active_games_count %}
                             <span class="badge bg-success text-white">{{ active_games_count }}</span>
                             {% endif %}
                         </a>
-                        <a class="nav-link {% if 'appeal' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:ban_appeals_list' %}?status=pending">
-                            <i class="bi bi-envelope-exclamation"></i> Ban Appeals
+                        <a class="nav-link {% if 'appeal' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:ban_appeals_list' %}?status=pending" data-title="Ban Appeals">
+                            <i class="bi bi-envelope-exclamation"></i> <span class="sidebar-text">Ban Appeals</span>
                             {% if pending_appeals_count %}
                             <span class="badge bg-warning text-dark">{{ pending_appeals_count }}</span>
                             {% endif %}
                         </a>
-                        <a class="nav-link {% if 'transaction' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:transactions_list' %}">
-                            <i class="bi bi-receipt"></i> Transactions
+                        <a class="nav-link {% if 'transaction' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:transactions_list' %}" data-title="Transactions">
+                            <i class="bi bi-receipt"></i> <span class="sidebar-text">Transactions</span>
                             {% if recent_transactions_count %}
                             <span class="badge bg-primary text-white">{{ recent_transactions_count }}</span>
                             {% endif %}
                         </a>
-                        <a class="nav-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:payment_gateways_list' %}">
-                            <i class="bi bi-credit-card"></i> Payment Gateways
+                        <a class="nav-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:payment_gateways_list' %}" data-title="Payment Gateways">
+                            <i class="bi bi-credit-card"></i> <span class="sidebar-text">Payment Gateways</span>
                         </a>
                         <hr style="border-color: rgba(255,255,255,0.2);">
                         
                         <!-- CMS Section -->
-                        <small class="text-muted ps-3 mt-2 d-block" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Content Management</small>
-                        <a class="nav-link {% if 'cms_pages' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:cms_pages_list' %}">
-                            <i class="bi bi-file-text"></i> CMS Pages
+                        <small class="text-muted ps-3 mt-2 d-block sidebar-text" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Content Management</small>
+                        <a class="nav-link {% if 'cms_pages' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:cms_pages_list' %}" data-title="CMS Pages">
+                            <i class="bi bi-file-text"></i> <span class="sidebar-text">CMS Pages</span>
                             {% if total_cms_pages_count %}
                             <span class="badge bg-secondary text-white">{{ total_cms_pages_count }}</span>
                             {% endif %}
                         </a>
-                        <a class="nav-link {% if 'cms_social' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:cms_social_links' %}">
-                            <i class="bi bi-share"></i> Social Links
+                        <a class="nav-link {% if 'cms_social' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:cms_social_links' %}" data-title="Social Links">
+                            <i class="bi bi-share"></i> <span class="sidebar-text">Social Links</span>
                         </a>
-                        <a class="nav-link {% if 'cms_site_settings' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:cms_site_settings' %}">
-                            <i class="bi bi-gear"></i> Site Settings
+                        <a class="nav-link {% if 'cms_site_settings' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:cms_site_settings' %}" data-title="Site Settings">
+                            <i class="bi bi-gear"></i> <span class="sidebar-text">Site Settings</span>
                         </a>
                         
                         <hr style="border-color: rgba(255,255,255,0.2);">
-                        <a class="nav-link" href="{% url 'games:home' %}" target="_blank">
-                            <i class="bi bi-box-arrow-up-right"></i> View Site
+                        <a class="nav-link" href="{% url 'games:home' %}" target="_blank" data-title="View Site">
+                            <i class="bi bi-box-arrow-up-right"></i> <span class="sidebar-text">View Site</span>
                         </a>
-                        <a class="nav-link" href="{% url 'custom_admin:logout' %}">
-                            <i class="bi bi-box-arrow-right"></i> Logout
+                        <a class="nav-link" href="{% url 'custom_admin:logout' %}" data-title="Logout">
+                            <i class="bi bi-box-arrow-right"></i> <span class="sidebar-text">Logout</span>
                         </a>
                     </nav>
                 </div>
             </div>
+            
+            <!-- Sidebar Toggle Button -->
+            <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+                <i class="bi bi-list" id="toggleIcon"></i>
+            </button>
 
             <!-- Main Content -->
-            <div class="col-md-10 p-4">
+            <div class="main-content p-4" id="mainContent">
                 <!-- Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2>{% block page_title %}Dashboard{% endblock %}</h2>
@@ -237,6 +338,42 @@
                 }
             });
         }
+        
+        // Sidebar Toggle Function
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            // Change icon based on state
+            if (sidebar.classList.contains('collapsed')) {
+                toggleIcon.className = 'bi bi-list';
+            } else {
+                toggleIcon.className = 'bi bi-x-lg';
+            }
+            
+            // Save state to localStorage
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        }
+        
+        // Restore sidebar state on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            if (sidebarCollapsed) {
+                const sidebar = document.getElementById('sidebar');
+                const mainContent = document.getElementById('mainContent');
+                const toggleIcon = document.getElementById('toggleIcon');
+                
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+                toggleIcon.className = 'bi bi-list';
+            } else {
+                document.getElementById('toggleIcon').className = 'bi bi-x-lg';
+            }
+        });
         
     </script>
     
