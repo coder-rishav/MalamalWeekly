@@ -1,0 +1,119 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Site Settings - Admin Panel{% endblock %}
+{% block page_title %}Site Settings{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Basic Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="site_name" class="form-label">Site Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="site_name" name="site_name" value="{{ settings.site_name }}" required>
+                            <small class="form-text text-muted">The name of your website</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tagline" class="form-label">Tagline</label>
+                            <input type="text" class="form-control" id="tagline" name="tagline" value="{{ settings.tagline }}">
+                            <small class="form-text text-muted">Short slogan or motto</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ settings.description }}</textarea>
+                        <small class="form-text text-muted">Brief description of your site (displayed in footer)</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-envelope"></i> Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="contact_email" class="form-label">Contact Email</label>
+                            <input type="email" class="form-control" id="contact_email" name="contact_email" value="{{ settings.contact_email }}">
+                            <small class="form-text text-muted">Main contact email address</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contact_phone" class="form-label">Contact Phone</label>
+                            <input type="text" class="form-control" id="contact_phone" name="contact_phone" value="{{ settings.contact_phone }}">
+                            <small class="form-text text-muted">Phone number for customer support</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact_address" class="form-label">Contact Address</label>
+                        <textarea class="form-control" id="contact_address" name="contact_address" rows="2">{{ settings.contact_address }}</textarea>
+                        <small class="form-text text-muted">Physical address or location</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="support_hours" class="form-label">Support Hours</label>
+                        <input type="text" class="form-control" id="support_hours" name="support_hours" value="{{ settings.support_hours }}" placeholder="e.g., Mon-Fri 9AM-5PM IST">
+                        <small class="form-text text-muted">When support is available</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Settings -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-layout-text-sidebar-reverse"></i> Footer Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="footer_tagline" class="form-label">Footer Tagline</label>
+                        <input type="text" class="form-control" id="footer_tagline" name="footer_tagline" value="{{ settings.footer_tagline }}">
+                        <small class="form-text text-muted">Additional tagline for footer section</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="footer_copyright" class="form-label">Footer Copyright Text</label>
+                        <input type="text" class="form-control" id="footer_copyright" name="footer_copyright" value="{{ settings.footer_copyright }}" placeholder="© 2024 Your Company. All rights reserved.">
+                        <small class="form-text text-muted">Copyright notice displayed in footer</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEO & Analytics -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-search"></i> SEO & Analytics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="meta_keywords" class="form-label">Meta Keywords</label>
+                        <input type="text" class="form-control" id="meta_keywords" name="meta_keywords" value="{{ settings.meta_keywords }}" placeholder="lottery, gaming, weekly draw">
+                        <small class="form-text text-muted">Comma-separated keywords for SEO</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="google_analytics_id" class="form-label">Google Analytics ID</label>
+                        <input type="text" class="form-control" id="google_analytics_id" name="google_analytics_id" value="{{ settings.google_analytics_id }}" placeholder="G-XXXXXXXXXX">
+                        <small class="form-text text-muted">Your Google Analytics tracking ID</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'custom_admin:dashboard' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Save Settings
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

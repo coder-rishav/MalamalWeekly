@@ -1,0 +1,225 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Social Links - Admin Panel{% endblock %}
+{% block page_title %}Social Media Links{% endblock %}
+
+{% block content %}
+<!-- Header with Add Button -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Manage social media links displayed in the footer</p>
+    </div>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLinkModal">
+        <i class="bi bi-plus-circle"></i> Add Social Link
+    </button>
+</div>
+
+<!-- Social Links List -->
+<div class="card">
+    <div class="card-body">
+        {% if social_links %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Platform</th>
+                            <th>URL</th>
+                            <th>Icon Class</th>
+                            <th>Order</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for link in social_links %}
+                        <tr>
+                            <td>
+                                <i class="{{ link.icon_class }} me-2" style="font-size: 1.5rem;"></i>
+                                <strong>{{ link.get_platform_display }}</strong>
+                            </td>
+                            <td><a href="{{ link.url }}" target="_blank" class="text-decoration-none">{{ link.url|truncatechars:50 }}</a></td>
+                            <td><code>{{ link.icon_class }}</code></td>
+                            <td>{{ link.order }}</td>
+                            <td>
+                                {% if link.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-primary" onclick="editLink({{ link.id }}, '{{ link.platform }}', '{{ link.url }}', '{{ link.icon_class }}', {{ link.order }}, {{ link.is_active|yesno:'true,false' }})" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning" onclick="toggleLink({{ link.id }})" title="Toggle Status">
+                                        <i class="bi bi-power"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" onclick="deleteLink({{ link.id }}, '{{ link.get_platform_display }}')" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-share" style="font-size: 4rem; color: #dee2e6;"></i>
+                <h5 class="mt-3 text-muted">No social links found</h5>
+                <p class="text-muted">Add social media links to display in your footer</p>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLinkModal">
+                    <i class="bi bi-plus-circle"></i> Add Social Link
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Link Modal -->
+<div class="modal fade" id="addLinkModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add Social Link</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="add_platform" class="form-label">Platform <span class="text-danger">*</span></label>
+                        <select class="form-select" id="add_platform" name="platform" required>
+                            {% for value, label in platform_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="add_url" class="form-label">URL <span class="text-danger">*</span></label>
+                        <input type="url" class="form-control" id="add_url" name="url" placeholder="https://..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="add_icon_class" class="form-label">Icon Class <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="add_icon_class" name="icon_class" placeholder="bi bi-facebook" required>
+                        <small class="form-text text-muted">Bootstrap Icon class (e.g., bi bi-facebook)</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="add_order" class="form-label">Display Order</label>
+                        <input type="number" class="form-control" id="add_order" name="order" value="0" min="0">
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="add_is_active" name="is_active" checked>
+                        <label class="form-check-label" for="add_is_active">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Add Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Link Modal -->
+<div class="modal fade" id="editLinkModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="link_id" id="edit_link_id">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit Social Link</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_platform" class="form-label">Platform <span class="text-danger">*</span></label>
+                        <select class="form-select" id="edit_platform" name="platform" required>
+                            {% for value, label in platform_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_url" class="form-label">URL <span class="text-danger">*</span></label>
+                        <input type="url" class="form-control" id="edit_url" name="url" placeholder="https://..." required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_icon_class" class="form-label">Icon Class <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit_icon_class" name="icon_class" placeholder="bi bi-facebook" required>
+                        <small class="form-text text-muted">Bootstrap Icon class (e.g., bi bi-facebook)</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_order" class="form-label">Display Order</label>
+                        <input type="number" class="form-control" id="edit_order" name="order" value="0" min="0">
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active">
+                        <label class="form-check-label" for="edit_is_active">Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Update Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Forms for Actions -->
+<form id="deleteForm" method="post" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="link_id" id="delete_link_id">
+</form>
+
+<form id="toggleForm" method="post" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="toggle">
+    <input type="hidden" name="link_id" id="toggle_link_id">
+</form>
+
+<script>
+function editLink(id, platform, url, iconClass, order, isActive) {
+    document.getElementById('edit_link_id').value = id;
+    document.getElementById('edit_platform').value = platform;
+    document.getElementById('edit_url').value = url;
+    document.getElementById('edit_icon_class').value = iconClass;
+    document.getElementById('edit_order').value = order;
+    document.getElementById('edit_is_active').checked = isActive;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editLinkModal'));
+    modal.show();
+}
+
+function deleteLink(linkId, platform) {
+    Swal.fire({
+        title: 'Delete Social Link?',
+        html: `Are you sure you want to delete the <strong>${platform}</strong> link?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('delete_link_id').value = linkId;
+            document.getElementById('deleteForm').submit();
+        }
+    });
+}
+
+function toggleLink(linkId) {
+    document.getElementById('toggle_link_id').value = linkId;
+    document.getElementById('toggleForm').submit();
+}
+</script>
+{% endblock %}

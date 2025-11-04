@@ -49,4 +49,13 @@ urlpatterns = [
     path('payment-gateways/<int:gateway_id>/toggle-status/', views.toggle_gateway_status, name='toggle_gateway_status'),
     path('payment-gateways/<int:gateway_id>/toggle-mode/', views.toggle_gateway_mode, name='toggle_gateway_mode'),
     path('payment-gateways/<int:gateway_id>/delete/', views.delete_payment_gateway, name='delete_payment_gateway'),
+    
+    # CMS Management
+    path('cms/pages/', views.cms_pages_list, name='cms_pages_list'),
+    path('cms/pages/create/', views.cms_page_create, name='cms_page_create'),
+    path('cms/pages/<int:page_id>/edit/', views.cms_page_edit, name='cms_page_edit'),
+    path('cms/pages/<int:page_id>/delete/', views.cms_page_delete, name='cms_page_delete'),
+    path('cms/pages/<int:page_id>/toggle-status/', views.cms_page_toggle_status, name='cms_page_toggle_status'),
+    path('cms/social-links/', views.cms_social_links, name='cms_social_links'),
+    path('cms/settings/', views.cms_site_settings, name='cms_site_settings'),
 ]

@@ -106,6 +106,20 @@
                             <i class="bi bi-credit-card"></i> Payment Gateways
                         </a>
                         <hr style="border-color: rgba(255,255,255,0.2);">
+                        
+                        <!-- CMS Section -->
+                        <small class="text-muted ps-3 mt-2 d-block" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Content Management</small>
+                        <a class="nav-link {% if 'cms_pages' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:cms_pages_list' %}">
+                            <i class="bi bi-file-text"></i> CMS Pages
+                        </a>
+                        <a class="nav-link {% if 'cms_social' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:cms_social_links' %}">
+                            <i class="bi bi-share"></i> Social Links
+                        </a>
+                        <a class="nav-link {% if 'cms_site_settings' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:cms_site_settings' %}">
+                            <i class="bi bi-gear"></i> Site Settings
+                        </a>
+                        
+                        <hr style="border-color: rgba(255,255,255,0.2);">
                         <a class="nav-link" href="{% url 'games:home' %}" target="_blank">
                             <i class="bi bi-box-arrow-up-right"></i> View Site
                         </a>

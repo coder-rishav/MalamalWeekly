@@ -1,0 +1,213 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}CMS Pages - Admin Panel{% endblock %}
+{% block page_title %}CMS Page Management{% endblock %}
+
+{% block content %}
+<!-- Header with Add Button -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Manage content pages, footer links, and site information</p>
+    </div>
+    <a href="{% url 'custom_admin:cms_page_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Create New Page
+    </a>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h6 class="text-muted">Total Pages</h6>
+                <h2 class="text-primary">{{ pages.count }}</h2>
+                <small><i class="bi bi-file-text"></i> All content pages</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h6 class="text-muted">Active Pages</h6>
+                <h2 class="text-success">{{ pages|dictsort:"is_active"|slice:":"-1|length }}</h2>
+                <small><i class="bi bi-check-circle"></i> Published & visible</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body">
+                <h6 class="text-muted">Quick Links</h6>
+                <h2 class="text-info">{{ pages|dictsort:"footer_section"|slice:":"|length }}</h2>
+                <small><i class="bi bi-link-45deg"></i> Footer quick links</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h6 class="text-muted">Information</h6>
+                <h2 class="text-warning">{{ pages|dictsort:"footer_section"|slice:":"-1|length }}</h2>
+                <small><i class="bi bi-info-circle"></i> Info pages</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Search Pages</label>
+                <input type="text" name="search" class="form-control" placeholder="Search by title or content..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Footer Section</label>
+                <select name="section" class="form-select">
+                    <option value="">All Sections</option>
+                    <option value="quick_links" {% if filter_section == 'quick_links' %}selected{% endif %}>Quick Links</option>
+                    <option value="information" {% if filter_section == 'information' %}selected{% endif %}>Information</option>
+                    <option value="none" {% if filter_section == 'none' %}selected{% endif %}>No Footer</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="active" {% if filter_status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if filter_status == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Pages List -->
+<div class="card">
+    <div class="card-body">
+        {% if pages %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Slug</th>
+                            <th>Footer Section</th>
+                            <th>Order</th>
+                            <th>Status</th>
+                            <th>Created By</th>
+                            <th>Last Updated</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for page in pages %}
+                        <tr>
+                            <td>
+                                <strong>{{ page.title }}</strong>
+                                {% if page.show_in_footer %}
+                                    <br><small class="text-muted"><i class="bi bi-layout-text-sidebar-reverse"></i> Shown in footer</small>
+                                {% endif %}
+                            </td>
+                            <td><code>{{ page.slug }}</code></td>
+                            <td>
+                                {% if page.footer_section == 'quick_links' %}
+                                    <span class="badge bg-info">Quick Links</span>
+                                {% elif page.footer_section == 'information' %}
+                                    <span class="badge bg-warning">Information</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">None</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ page.order }}</td>
+                            <td>
+                                {% if page.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ page.created_by.username }}</td>
+                            <td>{{ page.updated_at|date:"M d, Y H:i" }}</td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="/page/{{ page.slug }}/" target="_blank" class="btn btn-outline-info" title="View Page">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'custom_admin:cms_page_edit' page.id %}" class="btn btn-outline-primary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-warning" onclick="toggleStatus({{ page.id }}, '{{ page.title }}')" title="Toggle Status">
+                                        <i class="bi bi-power"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" onclick="deletePage({{ page.id }}, '{{ page.title }}')" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-file-earmark-text" style="font-size: 4rem; color: #dee2e6;"></i>
+                <h5 class="mt-3 text-muted">No pages found</h5>
+                <p class="text-muted">
+                    {% if search_query or filter_section or filter_status %}
+                        Try adjusting your filters
+                    {% else %}
+                        Create your first page to get started
+                    {% endif %}
+                </p>
+                <a href="{% url 'custom_admin:cms_page_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create Page
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Form (Hidden) -->
+<form id="deleteForm" method="post" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<!-- Toggle Form (Hidden) -->
+<form id="toggleForm" method="post" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<script>
+function deletePage(pageId, pageTitle) {
+    Swal.fire({
+        title: 'Delete Page?',
+        html: `Are you sure you want to delete <strong>${pageTitle}</strong>?<br><small class="text-muted">This action cannot be undone.</small>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.getElementById('deleteForm');
+            form.action = `/admin-panel/cms/pages/${pageId}/delete/`;
+            form.submit();
+        }
+    });
+}
+
+function toggleStatus(pageId, pageTitle) {
+    const form = document.getElementById('toggleForm');
+    form.action = `/admin-panel/cms/pages/${pageId}/toggle-status/`;
+    form.submit();
+}
+</script>
+{% endblock %}

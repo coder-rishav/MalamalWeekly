@@ -9,6 +9,7 @@ from accounts.models import UserProfile
 from games.models import Game, GameRound, UserEntry, Winner
 from transactions.models import Transaction, DepositRequest, WithdrawalRequest, PaymentGateway
 from django.contrib.auth.models import User
+from cms.models import Page, SocialLink, SiteSettings
 
 
 def is_admin(user):
@@ -1195,3 +1196,226 @@ def delete_payment_gateway(request, gateway_id):
     gateway.delete()
     messages.success(request, f'Payment gateway "{gateway_name}" deleted successfully.')
     return redirect('custom_admin:payment_gateways_list')
+
+
+# ===== CMS Management =====
+
+@login_required
+@user_passes_test(is_admin)
+def cms_pages_list(request):
+    """List all CMS pages with search functionality"""
+    search_query = request.GET.get('search', '')
+    filter_section = request.GET.get('section', '')
+    filter_status = request.GET.get('status', '')
+    
+    pages = Page.objects.all().order_by('footer_section', 'order')
+    
+    if search_query:
+        pages = pages.filter(
+            Q(title__icontains=search_query) | 
+            Q(content__icontains=search_query)
+        )
+    
+    if filter_section:
+        pages = pages.filter(footer_section=filter_section)
+    
+    if filter_status:
+        is_active = filter_status == 'active'
+        pages = pages.filter(is_active=is_active)
+    
+    context = {
+        'pages': pages,
+        'search_query': search_query,
+        'filter_section': filter_section,
+        'filter_status': filter_status,
+    }
+    return render(request, 'custom_admin/cms_pages_list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def cms_page_create(request):
+    """Create a new CMS page"""
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        slug = request.POST.get('slug')
+        content = request.POST.get('content')
+        meta_description = request.POST.get('meta_description', '')
+        show_in_footer = request.POST.get('show_in_footer') == 'on'
+        footer_section = request.POST.get('footer_section', 'information')
+        order = request.POST.get('order', 0)
+        is_active = request.POST.get('is_active') == 'on'
+        
+        try:
+            page = Page.objects.create(
+                title=title,
+                slug=slug,
+                content=content,
+                meta_description=meta_description,
+                show_in_footer=show_in_footer,
+                footer_section=footer_section,
+                order=int(order),
+                is_active=is_active,
+                created_by=request.user
+            )
+            messages.success(request, f'Page "{page.title}" created successfully!')
+            return redirect('custom_admin:cms_pages_list')
+        except Exception as e:
+            messages.error(request, f'Error creating page: {str(e)}')
+    
+    return render(request, 'custom_admin/cms_page_form.html', {'action': 'Create'})
+
+
+@login_required
+@user_passes_test(is_admin)
+def cms_page_edit(request, page_id):
+    """Edit an existing CMS page"""
+    page = get_object_or_404(Page, id=page_id)
+    
+    if request.method == 'POST':
+        page.title = request.POST.get('title')
+        page.slug = request.POST.get('slug')
+        page.content = request.POST.get('content')
+        page.meta_description = request.POST.get('meta_description', '')
+        page.show_in_footer = request.POST.get('show_in_footer') == 'on'
+        page.footer_section = request.POST.get('footer_section', 'information')
+        page.order = int(request.POST.get('order', 0))
+        page.is_active = request.POST.get('is_active') == 'on'
+        
+        try:
+            page.save()
+            messages.success(request, f'Page "{page.title}" updated successfully!')
+            return redirect('custom_admin:cms_pages_list')
+        except Exception as e:
+            messages.error(request, f'Error updating page: {str(e)}')
+    
+    context = {
+        'page': page,
+        'action': 'Edit'
+    }
+    return render(request, 'custom_admin/cms_page_form.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def cms_page_delete(request, page_id):
+    """Delete a CMS page"""
+    page = get_object_or_404(Page, id=page_id)
+    page_title = page.title
+    page.delete()
+    messages.success(request, f'Page "{page_title}" deleted successfully!')
+    return redirect('custom_admin:cms_pages_list')
+
+
+@login_required
+@user_passes_test(is_admin)
+def cms_page_toggle_status(request, page_id):
+    """Toggle active status of a CMS page"""
+    page = get_object_or_404(Page, id=page_id)
+    page.is_active = not page.is_active
+    page.save()
+    
+    status = 'activated' if page.is_active else 'deactivated'
+    messages.success(request, f'Page "{page.title}" {status} successfully!')
+    return redirect('custom_admin:cms_pages_list')
+
+
+@login_required
+@user_passes_test(is_admin)
+def cms_social_links(request):
+    """Manage social media links"""
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create':
+            platform = request.POST.get('platform')
+            url = request.POST.get('url')
+            icon_class = request.POST.get('icon_class')
+            order = request.POST.get('order', 0)
+            is_active = request.POST.get('is_active') == 'on'
+            
+            try:
+                link = SocialLink.objects.create(
+                    platform=platform,
+                    url=url,
+                    icon_class=icon_class,
+                    order=int(order),
+                    is_active=is_active
+                )
+                messages.success(request, f'{link.get_platform_display()} link added successfully!')
+            except Exception as e:
+                messages.error(request, f'Error creating link: {str(e)}')
+        
+        elif action == 'edit':
+            link_id = request.POST.get('link_id')
+            link = get_object_or_404(SocialLink, id=link_id)
+            
+            link.platform = request.POST.get('platform')
+            link.url = request.POST.get('url')
+            link.icon_class = request.POST.get('icon_class')
+            link.order = int(request.POST.get('order', 0))
+            link.is_active = request.POST.get('is_active') == 'on'
+            
+            try:
+                link.save()
+                messages.success(request, f'{link.get_platform_display()} link updated successfully!')
+            except Exception as e:
+                messages.error(request, f'Error updating link: {str(e)}')
+        
+        elif action == 'delete':
+            link_id = request.POST.get('link_id')
+            link = get_object_or_404(SocialLink, id=link_id)
+            platform = link.get_platform_display()
+            link.delete()
+            messages.success(request, f'{platform} link deleted successfully!')
+        
+        elif action == 'toggle':
+            link_id = request.POST.get('link_id')
+            link = get_object_or_404(SocialLink, id=link_id)
+            link.is_active = not link.is_active
+            link.save()
+            status = 'activated' if link.is_active else 'deactivated'
+            messages.success(request, f'{link.get_platform_display()} link {status}!')
+        
+        return redirect('custom_admin:cms_social_links')
+    
+    social_links = SocialLink.objects.all().order_by('order')
+    
+    context = {
+        'social_links': social_links,
+        'platform_choices': SocialLink.PLATFORM_CHOICES,
+    }
+    return render(request, 'custom_admin/cms_social_links.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def cms_site_settings(request):
+    """Edit global site settings"""
+    settings = SiteSettings.get_settings()
+    
+    if request.method == 'POST':
+        settings.site_name = request.POST.get('site_name')
+        settings.tagline = request.POST.get('tagline', '')
+        settings.description = request.POST.get('description', '')
+        settings.contact_email = request.POST.get('contact_email', '')
+        settings.contact_phone = request.POST.get('contact_phone', '')
+        settings.contact_address = request.POST.get('contact_address', '')
+        settings.support_hours = request.POST.get('support_hours', '')
+        settings.footer_copyright = request.POST.get('footer_copyright', '')
+        settings.footer_tagline = request.POST.get('footer_tagline', '')
+        settings.meta_keywords = request.POST.get('meta_keywords', '')
+        settings.google_analytics_id = request.POST.get('google_analytics_id', '')
+        
+        try:
+            settings.save()
+            messages.success(request, 'Site settings updated successfully!')
+        except Exception as e:
+            messages.error(request, f'Error updating settings: {str(e)}')
+        
+        return redirect('custom_admin:cms_site_settings')
+    
+    context = {
+        'settings': settings,
+    }
+    return render(request, 'custom_admin/cms_site_settings.html', context)
