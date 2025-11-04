@@ -4,6 +4,46 @@
 {% block page_title %}Dashboard Overview{% endblock %}
 
 {% block content %}
+<style>
+/* Masonry Grid Layout */
+.masonry-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-auto-rows: 10px;
+    gap: 20px;
+}
+
+.masonry-item {
+    break-inside: avoid;
+    margin-bottom: 0;
+}
+
+/* Calculate grid row span based on content height */
+.masonry-item-1 { grid-row-end: span 20; } /* Small cards */
+.masonry-item-2 { grid-row-end: span 35; } /* Medium cards */
+.masonry-item-3 { grid-row-end: span 50; } /* Large cards */
+.masonry-item-4 { grid-row-end: span 70; } /* Extra large cards */
+
+@media (min-width: 768px) {
+    .masonry-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 992px) {
+    .masonry-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1400px) {
+    .masonry-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+</style>
+
+{% block content %}
 <!-- Statistics Cards Row 1 -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
@@ -225,10 +265,11 @@
     </div>
 </div>
 
-<div class="row">
+<!-- Masonry Grid Container -->
+<div class="masonry-container">
     <!-- Recent KYC Submissions -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
+    <div class="masonry-item masonry-item-3">
+        <div class="card h-100">
             <div class="card-header bg-warning text-dark">
                 <h5 class="mb-0"><i class="bi bi-shield-check"></i> Recent KYC</h5>
             </div>
@@ -259,8 +300,8 @@
     </div>
     
     <!-- Active Rounds -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
+    <div class="masonry-item masonry-item-3">
+        <div class="card h-100">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0"><i class="bi bi-play-circle"></i> Active Rounds</h5>
             </div>
@@ -290,8 +331,8 @@
     </div>
 
     <!-- Recent Transactions -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
+    <div class="masonry-item masonry-item-4">
+        <div class="card h-100">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0"><i class="bi bi-receipt"></i> Recent Transactions</h5>
             </div>
@@ -324,12 +365,10 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- Recent Game Entries -->
-<div class="row">
-    <div class="col-md-12">
-        <div class="card">
+    <!-- Recent Game Entries -->
+    <div class="masonry-item masonry-item-4">
+        <div class="card h-100">
             <div class="card-header bg-info text-white">
                 <h5 class="mb-0"><i class="bi bi-joystick"></i> Recent Game Entries</h5>
             </div>
@@ -368,6 +407,7 @@
         </div>
     </div>
 </div>
+<!-- End Masonry Container -->
 
 <!-- Chart.js Script -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
