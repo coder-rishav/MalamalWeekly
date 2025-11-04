@@ -1429,3 +1429,113 @@ def cms_site_settings(request):
         'settings': settings,
     }
     return render(request, 'custom_admin/cms_site_settings.html', context)
+
+
+# ===== KYC Management =====
+
+@login_required
+@user_passes_test(is_admin)
+def kyc_requests_list(request):
+    """List all KYC requests with filtering"""
+    status_filter = request.GET.get('status', 'pending')
+    search_query = request.GET.get('search', '')
+    
+    # Base query
+    kyc_requests = UserProfile.objects.select_related('user').exclude(kyc_status='not_submitted')
+    
+    # Apply status filter
+    if status_filter and status_filter != 'all':
+        kyc_requests = kyc_requests.filter(kyc_status=status_filter)
+    
+    # Apply search filter
+    if search_query:
+        kyc_requests = kyc_requests.filter(
+            Q(user__username__icontains=search_query) |
+            Q(user__email__icontains=search_query) |
+            Q(full_name__icontains=search_query) |
+            Q(aadhar_number__icontains=search_query) |
+            Q(pan_number__icontains=search_query)
+        )
+    
+    # Order by submission date (newest first)
+    kyc_requests = kyc_requests.order_by('-kyc_submitted_at')
+    
+    # Count statistics
+    total_submitted = UserProfile.objects.exclude(kyc_status='not_submitted').count()
+    pending_count = UserProfile.objects.filter(kyc_status='pending').count()
+    verified_count = UserProfile.objects.filter(kyc_status='verified').count()
+    rejected_count = UserProfile.objects.filter(kyc_status='rejected').count()
+    
+    context = {
+        'kyc_requests': kyc_requests,
+        'status_filter': status_filter,
+        'search_query': search_query,
+        'total_submitted': total_submitted,
+        'pending_count': pending_count,
+        'verified_count': verified_count,
+        'rejected_count': rejected_count,
+    }
+    return render(request, 'custom_admin/kyc_requests_list.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def kyc_review(request, user_id):
+    """Review KYC documents for a specific user"""
+    user = get_object_or_404(User, id=user_id)
+    profile = user.profile
+    
+    context = {
+        'kyc_user': user,
+        'profile': profile,
+    }
+    return render(request, 'custom_admin/kyc_review.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def kyc_approve(request, user_id):
+    """Approve KYC for a user"""
+    user = get_object_or_404(User, id=user_id)
+    profile = user.profile
+    
+    if profile.kyc_status != 'verified':
+        profile.kyc_status = 'verified'
+        profile.kyc_reviewed_at = timezone.now()
+        profile.kyc_reviewed_by = request.user
+        profile.kyc_rejection_reason = None
+        profile.is_verified = True
+        profile.save()
+        
+        messages.success(request, f'KYC approved for {user.username}. User is now verified.')
+    else:
+        messages.info(request, f'KYC for {user.username} is already verified.')
+    
+    return redirect('custom_admin:kyc_requests_list')
+
+
+@login_required
+@user_passes_test(is_admin)
+def kyc_reject(request, user_id):
+    """Reject KYC for a user"""
+    user = get_object_or_404(User, id=user_id)
+    profile = user.profile
+    
+    if request.method == 'POST':
+        rejection_reason = request.POST.get('rejection_reason', '').strip()
+        
+        if not rejection_reason:
+            messages.error(request, 'Please provide a reason for rejection.')
+            return redirect('custom_admin:kyc_review', user_id=user_id)
+        
+        profile.kyc_status = 'rejected'
+        profile.kyc_reviewed_at = timezone.now()
+        profile.kyc_reviewed_by = request.user
+        profile.kyc_rejection_reason = rejection_reason
+        profile.is_verified = False
+        profile.save()
+        
+        messages.success(request, f'KYC rejected for {user.username}. User can resubmit documents.')
+        return redirect('custom_admin:kyc_requests_list')
+    
+    return redirect('custom_admin:kyc_review', user_id=user_id)

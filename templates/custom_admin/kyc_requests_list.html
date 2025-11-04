@@ -1,0 +1,232 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}KYC Verification - Admin Panel{% endblock %}
+{% block page_title %}KYC Verification Management{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Review and verify user identity documents</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h6 class="text-muted">Total Submitted</h6>
+                <h2 class="text-primary">{{ total_submitted }}</h2>
+                <small><i class="bi bi-file-earmark-text"></i> All KYC requests</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h6 class="text-muted">Pending Review</h6>
+                <h2 class="text-warning">{{ pending_count }}</h2>
+                <small><i class="bi bi-clock-history"></i> Awaiting verification</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h6 class="text-muted">Verified</h6>
+                <h2 class="text-success">{{ verified_count }}</h2>
+                <small><i class="bi bi-check-circle"></i> Approved KYC</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body">
+                <h6 class="text-muted">Rejected</h6>
+                <h2 class="text-danger">{{ rejected_count }}</h2>
+                <small><i class="bi bi-x-circle"></i> Need resubmission</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending Review</option>
+                    <option value="verified" {% if status_filter == 'verified' %}selected{% endif %}>Verified</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-7">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Search by username, email, name, Aadhar, or PAN..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- KYC Requests List -->
+<div class="card">
+    <div class="card-body">
+        {% if kyc_requests %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Full Name</th>
+                            <th>Aadhar</th>
+                            <th>PAN</th>
+                            <th>Submitted</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for profile in kyc_requests %}
+                        <tr>
+                            <td>
+                                {% if profile.profile_photo %}
+                                    <img src="{{ profile.profile_photo.url }}" alt="{{ profile.user.username }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                {% else %}
+                                    <i class="bi bi-person-circle me-2" style="font-size: 2rem;"></i>
+                                {% endif %}
+                                <strong>{{ profile.user.username }}</strong><br>
+                                <small class="text-muted">{{ profile.user.email }}</small>
+                            </td>
+                            <td>{{ profile.full_name|default:"Not provided" }}</td>
+                            <td><code>{{ profile.aadhar_number|default:"N/A" }}</code></td>
+                            <td><code>{{ profile.pan_number|default:"N/A" }}</code></td>
+                            <td>
+                                {% if profile.kyc_submitted_at %}
+                                    {{ profile.kyc_submitted_at|date:"M d, Y" }}<br>
+                                    <small class="text-muted">{{ profile.kyc_submitted_at|date:"h:i A" }}</small>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if profile.kyc_status == 'pending' %}
+                                    <span class="badge bg-warning"><i class="bi bi-clock-history"></i> Pending</span>
+                                {% elif profile.kyc_status == 'verified' %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Verified</span>
+                                    {% if profile.kyc_reviewed_at %}
+                                    <br><small class="text-muted">{{ profile.kyc_reviewed_at|date:"M d, Y" }}</small>
+                                    {% endif %}
+                                {% elif profile.kyc_status == 'rejected' %}
+                                    <span class="badge bg-danger"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                                    {% if profile.kyc_reviewed_at %}
+                                    <br><small class="text-muted">{{ profile.kyc_reviewed_at|date:"M d, Y" }}</small>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'custom_admin:kyc_review' profile.user.id %}" class="btn btn-outline-info" title="Review Documents">
+                                        <i class="bi bi-eye"></i> Review
+                                    </a>
+                                    {% if profile.kyc_status == 'pending' or profile.kyc_status == 'rejected' %}
+                                    <button type="button" class="btn btn-outline-success" onclick="approveKYC({{ profile.user.id }}, '{{ profile.user.username }}')" title="Approve">
+                                        <i class="bi bi-check-circle"></i> Approve
+                                    </button>
+                                    {% endif %}
+                                    {% if profile.kyc_status == 'pending' or profile.kyc_status == 'verified' %}
+                                    <button type="button" class="btn btn-outline-danger" onclick="showRejectModal({{ profile.user.id }}, '{{ profile.user.username }}')" title="Reject">
+                                        <i class="bi bi-x-circle"></i> Reject
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-shield-x" style="font-size: 4rem; color: #dee2e6;"></i>
+                <h5 class="mt-3 text-muted">No KYC requests found</h5>
+                <p class="text-muted">
+                    {% if search_query or status_filter != 'pending' %}
+                        Try adjusting your filters
+                    {% else %}
+                        No users have submitted KYC documents yet
+                    {% endif %}
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Approve Form (Hidden) -->
+<form id="approveForm" method="post" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" id="rejectForm">
+                {% csrf_token %}
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-x-circle"></i> Reject KYC</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Rejecting KYC for: <strong id="rejectUsername"></strong></p>
+                    <div class="mb-3">
+                        <label for="rejection_reason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="4" required placeholder="Explain why the KYC is being rejected..."></textarea>
+                        <small class="form-text text-muted">User will see this reason and can resubmit documents</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-x-circle"></i> Reject KYC</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function approveKYC(userId, username) {
+    Swal.fire({
+        title: 'Approve KYC?',
+        html: `Are you sure you want to approve KYC for <strong>${username}</strong>?<br><small class="text-muted">User will be marked as verified.</small>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, approve it',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.getElementById('approveForm');
+            form.action = `/admin-panel/kyc/${userId}/approve/`;
+            form.submit();
+        }
+    });
+}
+
+function showRejectModal(userId, username) {
+    document.getElementById('rejectUsername').textContent = username;
+    document.getElementById('rejectForm').action = `/admin-panel/kyc/${userId}/reject/`;
+    document.getElementById('rejection_reason').value = '';
+    const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

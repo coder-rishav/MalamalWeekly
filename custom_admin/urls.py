@@ -58,4 +58,10 @@ urlpatterns = [
     path('cms/pages/<int:page_id>/toggle-status/', views.cms_page_toggle_status, name='cms_page_toggle_status'),
     path('cms/social-links/', views.cms_social_links, name='cms_social_links'),
     path('cms/settings/', views.cms_site_settings, name='cms_site_settings'),
+    
+    # KYC Management
+    path('kyc/', views.kyc_requests_list, name='kyc_requests_list'),
+    path('kyc/<int:user_id>/review/', views.kyc_review, name='kyc_review'),
+    path('kyc/<int:user_id>/approve/', views.kyc_approve, name='kyc_approve'),
+    path('kyc/<int:user_id>/reject/', views.kyc_reject, name='kyc_reject'),
 ]

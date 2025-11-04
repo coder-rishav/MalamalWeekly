@@ -90,6 +90,12 @@
                             <span class="badge bg-warning text-dark">{{ pending_withdrawals_count }}</span>
                             {% endif %}
                         </a>
+                        <a class="nav-link {% if 'kyc' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:kyc_requests_list' %}">
+                            <i class="bi bi-shield-check"></i> KYC Verification
+                            {% if pending_kyc_count %}
+                            <span class="badge bg-warning text-dark">{{ pending_kyc_count }}</span>
+                            {% endif %}
+                        </a>
                         <a class="nav-link {% if 'games' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'custom_admin:games_management' %}">
                             <i class="bi bi-controller"></i> Games
                         </a>

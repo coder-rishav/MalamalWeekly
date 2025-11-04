@@ -1,0 +1,296 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Review KYC - {{ kyc_user.username }} - Admin Panel{% endblock %}
+{% block page_title %}KYC Document Review{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- User Info Sidebar -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if profile.profile_photo %}
+                    <img src="{{ profile.profile_photo.url }}" alt="{{ kyc_user.username }}" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid var(--primary-color);">
+                {% else %}
+                    <i class="bi bi-person-circle mb-3" style="font-size: 7rem; color: #ccc;"></i>
+                {% endif %}
+                <h4>{{ kyc_user.username }}</h4>
+                <p class="text-muted">{{ kyc_user.email }}</p>
+                
+                <div class="mb-3">
+                    <strong>Current Status:</strong><br>
+                    {% if profile.kyc_status == 'pending' %}
+                        <span class="badge bg-warning"><i class="bi bi-clock-history"></i> Pending Review</span>
+                    {% elif profile.kyc_status == 'verified' %}
+                        <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Verified</span>
+                    {% elif profile.kyc_status == 'rejected' %}
+                        <span class="badge bg-danger"><i class="bi bi-x-circle-fill"></i> Rejected</span>
+                    {% endif %}
+                </div>
+                
+                {% if profile.kyc_submitted_at %}
+                <p class="mb-1"><small class="text-muted">Submitted:</small><br>{{ profile.kyc_submitted_at|date:"F d, Y - h:i A" }}</p>
+                {% endif %}
+                
+                {% if profile.kyc_reviewed_at %}
+                <p class="mb-1"><small class="text-muted">Reviewed:</small><br>{{ profile.kyc_reviewed_at|date:"F d, Y - h:i A" }}</p>
+                {% if profile.kyc_reviewed_by %}
+                <p class="mb-0"><small class="text-muted">by {{ profile.kyc_reviewed_by.username }}</small></p>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="card-title">Actions</h6>
+                {% if profile.kyc_status == 'pending' or profile.kyc_status == 'rejected' %}
+                <form method="post" action="{% url 'custom_admin:kyc_approve' kyc_user.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success w-100 mb-2" onclick="return confirm('Are you sure you want to approve this KYC?')">
+                        <i class="bi bi-check-circle"></i> Approve KYC
+                    </button>
+                </form>
+                {% endif %}
+                
+                {% if profile.kyc_status == 'pending' or profile.kyc_status == 'verified' %}
+                <button type="button" class="btn btn-danger w-100 mb-2" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                    <i class="bi bi-x-circle"></i> Reject KYC
+                </button>
+                {% endif %}
+                
+                <a href="{% url 'custom_admin:kyc_requests_list' %}" class="btn btn-secondary w-100">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Documents Review -->
+    <div class="col-md-8 mb-4">
+        <!-- Personal Information -->
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <p class="text-muted mb-1">Full Name</p>
+                        <p class="mb-0"><strong>{{ profile.full_name|default:"Not provided" }}</strong></p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <p class="text-muted mb-1">Aadhar Number</p>
+                        <p class="mb-0"><strong>{{ profile.aadhar_number|default:"Not provided" }}</strong></p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <p class="text-muted mb-1">PAN Number</p>
+                        <p class="mb-0"><strong>{{ profile.pan_number|default:"Not provided" }}</strong></p>
+                    </div>
+                </div>
+                
+                {% if profile.kyc_status == 'rejected' and profile.kyc_rejection_reason %}
+                <div class="alert alert-danger mb-0 mt-3">
+                    <h6><i class="bi bi-exclamation-triangle"></i> Rejection Reason</h6>
+                    <p class="mb-0">{{ profile.kyc_rejection_reason }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Document Images -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-image"></i> Submitted Documents</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if profile.aadhar_front %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Aadhar Card (Front)</h6>
+                            </div>
+                            <div class="card-body text-center p-2">
+                                <img src="{{ profile.aadhar_front.url }}" alt="Aadhar Front" class="img-fluid rounded" style="max-height: 300px; cursor: pointer;" onclick="viewImage('{{ profile.aadhar_front.url }}', 'Aadhar Front')">
+                            </div>
+                            <div class="card-footer text-center">
+                                <a href="{{ profile.aadhar_front.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                                <button class="btn btn-sm btn-outline-info" onclick="viewImage('{{ profile.aadhar_front.url }}', 'Aadhar Front')">
+                                    <i class="bi bi-zoom-in"></i> Zoom
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Aadhar Card (Front)</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-x" style="font-size: 4rem; color: #ccc;"></i>
+                                <p class="text-muted">Not uploaded</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if profile.aadhar_back %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Aadhar Card (Back)</h6>
+                            </div>
+                            <div class="card-body text-center p-2">
+                                <img src="{{ profile.aadhar_back.url }}" alt="Aadhar Back" class="img-fluid rounded" style="max-height: 300px; cursor: pointer;" onclick="viewImage('{{ profile.aadhar_back.url }}', 'Aadhar Back')">
+                            </div>
+                            <div class="card-footer text-center">
+                                <a href="{{ profile.aadhar_back.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                                <button class="btn btn-sm btn-outline-info" onclick="viewImage('{{ profile.aadhar_back.url }}', 'Aadhar Back')">
+                                    <i class="bi bi-zoom-in"></i> Zoom
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Aadhar Card (Back)</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-x" style="font-size: 4rem; color: #ccc;"></i>
+                                <p class="text-muted">Not uploaded</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if profile.pan_card %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">PAN Card</h6>
+                            </div>
+                            <div class="card-body text-center p-2">
+                                <img src="{{ profile.pan_card.url }}" alt="PAN Card" class="img-fluid rounded" style="max-height: 300px; cursor: pointer;" onclick="viewImage('{{ profile.pan_card.url }}', 'PAN Card')">
+                            </div>
+                            <div class="card-footer text-center">
+                                <a href="{{ profile.pan_card.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                                <button class="btn btn-sm btn-outline-info" onclick="viewImage('{{ profile.pan_card.url }}', 'PAN Card')">
+                                    <i class="bi bi-zoom-in"></i> Zoom
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">PAN Card</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-x" style="font-size: 4rem; color: #ccc;"></i>
+                                <p class="text-muted">Not uploaded</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if profile.selfie_with_id %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Selfie with ID</h6>
+                            </div>
+                            <div class="card-body text-center p-2">
+                                <img src="{{ profile.selfie_with_id.url }}" alt="Selfie" class="img-fluid rounded" style="max-height: 300px; cursor: pointer;" onclick="viewImage('{{ profile.selfie_with_id.url }}', 'Selfie with ID')">
+                            </div>
+                            <div class="card-footer text-center">
+                                <a href="{{ profile.selfie_with_id.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                                <button class="btn btn-sm btn-outline-info" onclick="viewImage('{{ profile.selfie_with_id.url }}', 'Selfie with ID')">
+                                    <i class="bi bi-zoom-in"></i> Zoom
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Selfie with ID</h6>
+                            </div>
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-x" style="font-size: 4rem; color: #ccc;"></i>
+                                <p class="text-muted">Not uploaded</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'custom_admin:kyc_reject' kyc_user.id %}">
+                {% csrf_token %}
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-x-circle"></i> Reject KYC</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Rejecting KYC for: <strong>{{ kyc_user.username }}</strong></p>
+                    <div class="mb-3">
+                        <label for="rejection_reason" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="rejection_reason" name="rejection_reason" rows="4" required placeholder="Explain why the KYC is being rejected..."></textarea>
+                        <small class="form-text text-muted">User will see this reason and can resubmit documents</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-x-circle"></i> Reject KYC</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Image Viewer Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalTitle">Document Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center" style="background: #000;">
+                <img id="modalImage" src="" alt="Document" class="img-fluid" style="max-height: 80vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewImage(imageUrl, title) {
+    document.getElementById('modalImage').src = imageUrl;
+    document.getElementById('imageModalTitle').textContent = title;
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

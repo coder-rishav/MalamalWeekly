@@ -1,4 +1,4 @@
-from accounts.models import BanAppeal
+from accounts.models import BanAppeal, UserProfile
 
 
 def admin_context(request):
@@ -12,6 +12,10 @@ def admin_context(request):
         # Count pending ban appeals
         pending_appeals = BanAppeal.objects.filter(status='pending').count()
         context['pending_appeals_count'] = pending_appeals
+        
+        # Count pending KYC verifications
+        pending_kyc = UserProfile.objects.filter(kyc_status='pending').count()
+        context['pending_kyc_count'] = pending_kyc
         
         # You can add other counts here in the future
         # e.g., pending_deposits_count, pending_withdrawals_count
