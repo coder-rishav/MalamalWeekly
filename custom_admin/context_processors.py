@@ -30,7 +30,7 @@ def admin_context(request):
         context['pending_kyc_count'] = pending_kyc
         
         # Count active games
-        active_games = Game.objects.filter(is_active=True).count()
+        active_games = Game.objects.filter(status='active').count()
         context['active_games_count'] = active_games
         
         # Count pending ban appeals
