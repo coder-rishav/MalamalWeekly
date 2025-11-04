@@ -37,6 +37,28 @@
             background: rgba(255,255,255,0.2);
             color: white;
         }
+        /* Active state for collapsed sidebar - make icon bold and bigger */
+        .sidebar.collapsed .nav-link.active {
+            background: transparent !important;
+            position: relative;
+            padding: 15px 0 !important;
+        }
+        .sidebar.collapsed .nav-link.active i {
+            font-weight: 900 !important;
+            font-size: 1.8rem !important;
+            color: #ffffff !important;
+        }
+        .sidebar.collapsed .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: -16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 5px;
+            height: 50px;
+            background: #ffffff;
+            border-radius: 0 8px 8px 0;
+        }
         .sidebar .nav-link i {
             width: 20px;
             margin-right: 10px;
