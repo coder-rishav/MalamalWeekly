@@ -45,27 +45,24 @@
             {% if messages %}
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
-                        const messages = [
-                            {% for message in messages %}
-                            {
-                                text: "{{ message|escapejs }}",
-                                tags: "{{ message.tags }}"
-                            }{% if not forloop.last %},{% endif %}
-                            {% endfor %}
-                        ];
-                        
-                        messages.forEach(function(msg) {
-                            let toastrType = 'info';
-                            if (msg.tags.includes('success')) {
-                                toastrType = 'success';
-                            } else if (msg.tags.includes('error') || msg.tags.includes('danger')) {
-                                toastrType = 'error';
-                            } else if (msg.tags.includes('warning')) {
-                                toastrType = 'warning';
-                            }
-                            
-                            toastr[toastrType](msg.text);
-                        });
+                        {% for message in messages %}
+                            (function() {
+                                let toastrType = 'info';
+                                let tags = '{{ message.tags }}';
+                                // Strip HTML tags and decode entities
+                                let messageText = '{{ message|striptags|escapejs }}';
+                                
+                                if (tags.includes('success')) {
+                                    toastrType = 'success';
+                                } else if (tags.includes('error') || tags.includes('danger')) {
+                                    toastrType = 'error';
+                                } else if (tags.includes('warning')) {
+                                    toastrType = 'warning';
+                                }
+                                
+                                toastr[toastrType](messageText);
+                            })();
+                        {% endfor %}
                     });
                 </script>
             {% endif %}
