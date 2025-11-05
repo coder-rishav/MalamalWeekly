@@ -27,7 +27,7 @@
                     <div class="mb-4">
                         <label for="content" class="form-label">Page Content <span class="text-danger">*</span></label>
                         <textarea class="form-control" id="content" name="content" rows="15" required>{{ page.content }}</textarea>
-                        <small class="form-text text-muted">HTML content of the page (supports HTML formatting)</small>
+                        <small class="form-text text-muted">Use the rich text editor to format your content. HTML will be generated automatically.</small>
                     </div>
 
                     <div class="mb-4">
@@ -94,26 +94,57 @@
             </div>
         </div>
 
-        <!-- Content Formatting Help -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Formatting Tips</h6>
-            </div>
-            <div class="card-body">
-                <p><strong>You can use HTML formatting in the content:</strong></p>
-                <ul class="mb-0">
-                    <li><code>&lt;h2&gt;Heading&lt;/h2&gt;</code> - For section headings</li>
-                    <li><code>&lt;p&gt;Paragraph&lt;/p&gt;</code> - For paragraphs</li>
-                    <li><code>&lt;strong&gt;Bold&lt;/strong&gt;</code> - For bold text</li>
-                    <li><code>&lt;ul&gt;&lt;li&gt;Item&lt;/li&gt;&lt;/ul&gt;</code> - For bullet lists</li>
-                    <li><code>&lt;a href="url"&gt;Link&lt;/a&gt;</code> - For links</li>
-                </ul>
-            </div>
-        </div>
     </div>
 </div>
 
+<!-- TinyMCE Rich Text Editor -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
+// Initialize TinyMCE Rich Text Editor
+tinymce.init({
+    selector: '#content',
+    height: 500,
+    menubar: true,
+    plugins: [
+        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+        'insertdatetime', 'media', 'table', 'help', 'wordcount'
+    ],
+    toolbar: 'undo redo | blocks | bold italic underline strikethrough | ' +
+             'alignleft aligncenter alignright alignjustify | ' +
+             'bullist numlist outdent indent | ' +
+             'forecolor backcolor | link image | ' +
+             'removeformat code | help',
+    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+    branding: false,
+    promotion: false,
+    
+    // Automatically convert line breaks to paragraphs
+    forced_root_block: 'p',
+    
+    // Convert URLs to links automatically
+    convert_urls: true,
+    relative_urls: false,
+    
+    // Paste options
+    paste_as_text: false,
+    smart_paste: true,
+    
+    // Clean up Word content
+    paste_word_valid_elements: 'p,b,strong,i,em,h1,h2,h3,h4,h5,h6,ul,ol,li,a[href],br',
+    
+    // Allow all HTML elements
+    valid_elements: '*[*]',
+    extended_valid_elements: '*[*]',
+    
+    // Setup function
+    setup: function(editor) {
+        editor.on('init', function() {
+            console.log('TinyMCE Editor initialized');
+        });
+    }
+});
+
 // Auto-generate slug from title
 document.getElementById('title').addEventListener('input', function() {
     if (document.getElementById('slug').value === '' || !{{ page|yesno:"true,false" }}) {
