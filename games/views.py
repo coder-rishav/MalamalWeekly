@@ -275,8 +275,11 @@ def play_game(request, game_id, round_id):
         from accounts.models import UserProfile
         profile, created = UserProfile.objects.get_or_create(user=request.user)
         
+        # Convert entry fee to Decimal once
+        entry_fee = Decimal(str(game.entry_fee))
+        
         # Deduct entry fee from user wallet
-        if not profile.deduct_credits(game.entry_fee):
+        if not profile.deduct_credits(entry_fee):
             messages.error(request, 'Insufficient credits in your wallet.')
             return redirect('games:game_detail', game_id=game_id)
         
@@ -285,11 +288,10 @@ def play_game(request, game_id, round_id):
             user=request.user,
             game_round=game_round,
             user_choice=user_choice,
-            entry_fee_paid=Decimal(str(game.entry_fee))
+            entry_fee_paid=entry_fee
         )
         
         # Create transaction record
-        entry_fee = Decimal(str(game.entry_fee))
         Transaction.objects.create(
             user=request.user,
             transaction_type='game_entry',
@@ -304,7 +306,7 @@ def play_game(request, game_id, round_id):
         
         # Update round statistics
         game_round.total_participants += 1
-        game_round.total_pool_amount += Decimal(str(game.entry_fee))
+        game_round.total_pool_amount += entry_fee
         game_round.save()
         
         messages.success(request, f'Successfully entered {game.name}! Entry Number: {entry.entry_number}')
