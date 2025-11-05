@@ -95,15 +95,50 @@
                     
                     {% if game.game_type == 'number_match' %}
                     <h6 class="mb-3">Select 5 Numbers (0-99)</h6>
-                    {% for i in "12345" %}
-                    <div class="mb-2">
-                        <input type="number" name="number_{{ forloop.counter }}" class="form-control" placeholder="Number {{ forloop.counter }}" min="0" max="99" required>
+                    <div class="alert alert-info mb-2">
+                        <small><i class="bi bi-info-circle"></i> Click numbers to select. Pick exactly 5 numbers.</small>
                     </div>
-                    {% endfor %}
+                    <div id="number-match-selection-display" class="mb-3" style="background: #f8f9fa; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6;">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong style="font-size: 0.85rem;">Selected:</strong>
+                            <span class="badge bg-primary"><span id="number-match-count">0</span>/5</span>
+                        </div>
+                        <div id="number-match-selected-numbers" style="font-size: 0.8rem; color: #495057; min-height: 20px;">
+                            Click numbers below to select
+                        </div>
+                    </div>
+                    <div id="number-match-grid" style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; padding: 5px; border: 1px solid #dee2e6; border-radius: 5px; background: #fff;">
+                        {% for num in "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"|make_list %}
+                        {% if forloop.counter0 <= 99 %}
+                        <button type="button" class="btn btn-outline-primary number-match-number" data-number="{{ forloop.counter0 }}" style="padding: 4px 2px; font-size: 0.75rem; min-width: 0; aspect-ratio: 1;">
+                            {{ forloop.counter0 }}
+                        </button>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="number_match_numbers_hidden" id="number-match-numbers-hidden" required>
                     
                     {% elif game.game_type == 'lucky_draw' %}
                     <h6 class="mb-3">Pick Your Lucky Number (1-100)</h6>
-                    <input type="number" name="number" class="form-control" placeholder="Your lucky number" min="1" max="100" required>
+                    <div class="alert alert-info mb-2">
+                        <small><i class="bi bi-info-circle"></i> Click a number to select your lucky number.</small>
+                    </div>
+                    <div id="lucky-draw-selection-display" class="mb-3" style="background: #f8f9fa; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong style="font-size: 0.85rem;">Selected:</strong>
+                            <span id="lucky-draw-selected-number" class="badge bg-primary" style="font-size: 0.9rem;">None</span>
+                        </div>
+                    </div>
+                    <div id="lucky-draw-grid" style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; padding: 5px; border: 1px solid #dee2e6; border-radius: 5px; background: #fff;">
+                        {% for num in "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789X"|make_list %}
+                        {% if forloop.counter <= 100 %}
+                        <button type="button" class="btn btn-outline-success lucky-draw-number" data-number="{{ forloop.counter }}" style="padding: 4px 2px; font-size: 0.75rem; min-width: 0; aspect-ratio: 1;">
+                            {{ forloop.counter }}
+                        </button>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="number" id="lucky-draw-number-hidden" required>
                     
                     {% elif game.game_type == 'color_game' %}
                     <h6 class="mb-3">Choose Your Color</h6>
@@ -117,17 +152,22 @@
                     
                     {% elif game.game_type == 'keno' %}
                     <h6 class="mb-3">Pick Your Numbers (1-20 from 1-80)</h6>
-                    <div class="alert alert-info mb-3">
+                    <div class="alert alert-info mb-2">
                         <small><i class="bi bi-info-circle"></i> Click numbers to select. Pick 1-20 numbers.</small>
                     </div>
-                    <div id="keno-selection-display" class="mb-2">
-                        <strong>Selected (<span id="keno-count">0</span>/20):</strong>
-                        <div id="keno-selected-numbers" class="badge bg-primary">None</div>
+                    <div id="keno-selection-display" class="mb-3" style="background: #f8f9fa; padding: 8px; border-radius: 5px; border: 1px solid #dee2e6;">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong style="font-size: 0.85rem;">Selected:</strong>
+                            <span class="badge bg-primary"><span id="keno-count">0</span>/20</span>
+                        </div>
+                        <div id="keno-selected-numbers" style="font-size: 0.8rem; color: #495057; min-height: 20px;">
+                            Click numbers below to select
+                        </div>
                     </div>
-                    <div id="keno-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px;">
+                    <div id="keno-grid" style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; padding: 5px; border: 1px solid #dee2e6; border-radius: 5px; background: #fff;">
                         {% for num in "12345678901234567890123456789012345678901234567890123456789012345678901234567890"|make_list %}
                         {% if forloop.counter <= 80 %}
-                        <button type="button" class="btn btn-outline-primary btn-sm keno-number" data-number="{{ forloop.counter }}" style="aspect-ratio: 1;">
+                        <button type="button" class="btn btn-outline-primary keno-number" data-number="{{ forloop.counter }}" style="padding: 4px 2px; font-size: 0.75rem; min-width: 0; aspect-ratio: 1;">
                             {{ forloop.counter }}
                         </button>
                         {% endif %}
@@ -166,10 +206,13 @@
                                 // Update displays
                                 countDisplay.textContent = selectedNumbers.size;
                                 if (selectedNumbers.size > 0) {
-                                    const sortedNumbers = Array.from(selectedNumbers).sort((a, b) => a - b);
-                                    selectedDisplay.textContent = sortedNumbers.join(', ');
+                                    const sortedNumbers = Array.from(selectedNumbers).sort((a, b) => Number(a) - Number(b));
+                                    // Display as individual badges
+                                    selectedDisplay.innerHTML = sortedNumbers.map(num => 
+                                        `<span class="badge bg-primary me-1 mb-1">${num}</span>`
+                                    ).join('');
                                 } else {
-                                    selectedDisplay.textContent = 'None';
+                                    selectedDisplay.textContent = 'Click numbers below to select';
                                 }
                                 
                                 // Update hidden input
@@ -188,6 +231,114 @@
                                     input.name = 'keno_numbers';
                                     input.value = num;
                                     form.appendChild(input);
+                                });
+                            });
+                        }
+                    });
+                    </script>
+                    
+                    <script>
+                    // Number Match Game (Select 5 numbers from 0-99)
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const selectedNumbers = new Set();
+                        const maxSelections = 5;
+                        const buttons = document.querySelectorAll('.number-match-number');
+                        const countDisplay = document.getElementById('number-match-count');
+                        const selectedDisplay = document.getElementById('number-match-selected-numbers');
+                        const hiddenInput = document.getElementById('number-match-numbers-hidden');
+                        
+                        if (buttons.length > 0) {
+                            buttons.forEach(button => {
+                                button.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    const number = this.dataset.number;
+                                    
+                                    if (selectedNumbers.has(number)) {
+                                        // Deselect
+                                        selectedNumbers.delete(number);
+                                        this.classList.remove('active');
+                                        this.classList.add('btn-outline-primary');
+                                        this.classList.remove('btn-primary');
+                                    } else if (selectedNumbers.size < maxSelections) {
+                                        // Select
+                                        selectedNumbers.add(number);
+                                        this.classList.add('active');
+                                        this.classList.remove('btn-outline-primary');
+                                        this.classList.add('btn-primary');
+                                    }
+                                    
+                                    // Update displays
+                                    countDisplay.textContent = selectedNumbers.size;
+                                    if (selectedNumbers.size > 0) {
+                                        const sortedNumbers = Array.from(selectedNumbers).sort((a, b) => Number(a) - Number(b));
+                                        selectedDisplay.innerHTML = sortedNumbers.map(num => 
+                                            `<span class="badge bg-primary me-1 mb-1">${num}</span>`
+                                        ).join('');
+                                    } else {
+                                        selectedDisplay.textContent = 'Click numbers below to select';
+                                    }
+                                    
+                                    // Update hidden input - store as individual numbers for form submission
+                                    hiddenInput.value = Array.from(selectedNumbers).join(',');
+                                });
+                            });
+                            
+                            // Form submission handler - create individual number fields
+                            const form = document.querySelector('form');
+                            if (form) {
+                                form.addEventListener('submit', function(e) {
+                                    if (selectedNumbers.size !== maxSelections) {
+                                        e.preventDefault();
+                                        alert(`Please select exactly ${maxSelections} numbers.`);
+                                        return;
+                                    }
+                                    // Create input fields for each selected number
+                                    const sortedNumbers = Array.from(selectedNumbers).sort((a, b) => Number(a) - Number(b));
+                                    sortedNumbers.forEach((num, index) => {
+                                        const input = document.createElement('input');
+                                        input.type = 'hidden';
+                                        input.name = `number_${index + 1}`;
+                                        input.value = num;
+                                        form.appendChild(input);
+                                    });
+                                });
+                            }
+                        }
+                    });
+                    </script>
+                    
+                    <script>
+                    // Lucky Draw Game (Select 1 number from 1-100)
+                    document.addEventListener('DOMContentLoaded', function() {
+                        let selectedNumber = null;
+                        const buttons = document.querySelectorAll('.lucky-draw-number');
+                        const selectedDisplay = document.getElementById('lucky-draw-selected-number');
+                        const hiddenInput = document.getElementById('lucky-draw-number-hidden');
+                        
+                        if (buttons.length > 0) {
+                            buttons.forEach(button => {
+                                button.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    const number = this.dataset.number;
+                                    
+                                    // Deselect previous selection
+                                    buttons.forEach(btn => {
+                                        btn.classList.remove('active');
+                                        btn.classList.add('btn-outline-success');
+                                        btn.classList.remove('btn-success');
+                                    });
+                                    
+                                    // Select this number
+                                    selectedNumber = number;
+                                    this.classList.add('active');
+                                    this.classList.remove('btn-outline-success');
+                                    this.classList.add('btn-success');
+                                    
+                                    // Update display
+                                    selectedDisplay.textContent = number;
+                                    
+                                    // Update hidden input
+                                    hiddenInput.value = number;
                                 });
                             });
                         }
