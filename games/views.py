@@ -181,6 +181,33 @@ def play_game(request, game_id, round_id):
                 if user_choice[0] not in valid_colors:
                     raise ValueError("Invalid color selection")
             
+            elif game.game_type == 'keno':
+                # Keno: Pick 1-20 numbers from 1-80
+                numbers = request.POST.getlist('keno_numbers')
+                if not numbers:
+                    raise ValueError("Must select at least 1 number")
+                
+                user_choice = [int(n) for n in numbers]
+                
+                # Validate count
+                if len(user_choice) < 1 or len(user_choice) > 20:
+                    raise ValueError("Must select between 1 and 20 numbers")
+                
+                # Validate range
+                if any(n < 1 or n > 80 for n in user_choice):
+                    raise ValueError("Numbers must be between 1 and 80")
+                
+                # Check for duplicates
+                if len(user_choice) != len(set(user_choice)):
+                    raise ValueError("Duplicate numbers not allowed")
+            
+            elif game.game_type == 'odd_even':
+                # Odd/Even: Pick odd or even
+                prediction = request.POST.get('prediction', '').lower()
+                if prediction not in ['odd', 'even']:
+                    raise ValueError("Must select Odd or Even")
+                user_choice = [prediction]
+            
             elif game.game_type == 'custom':
                 # Handle custom game inputs
                 config = game.game_config
