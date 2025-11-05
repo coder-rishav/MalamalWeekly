@@ -10,6 +10,8 @@ class Game(models.Model):
         ('number_match', 'Number Match'),
         ('lucky_draw', 'Lucky Draw'),
         ('color_game', 'Color Game'),
+        ('keno', 'Keno'),
+        ('odd_even', 'Odd/Even'),
         ('custom', 'Custom Game'),
     ]
     
