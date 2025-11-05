@@ -123,14 +123,14 @@
                     <div class="alert alert-warning mb-2">
                         <small><i class="bi bi-star-fill"></i> Click a number to select your lucky number.</small>
                     </div>
-                    <div id="lucky-draw-selection-display" class="mb-3" style="background: #fff3cd; padding: 8px; border-radius: 5px; border: 1px solid #ffc107;">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <strong style="font-size: 0.85rem;">Selected:</strong>
+                    <div id="lucky-draw-selection-display" class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong style="font-size: 0.85rem;">Selected Number:</strong>
                             <span class="badge bg-warning text-dark"><span id="lucky-draw-count">0</span>/1</span>
                         </div>
-                        <div id="lucky-draw-selected-number" style="font-size: 0.8rem; color: #856404; min-height: 20px;">
+                        <button type="button" id="lucky-draw-selected-number" class="btn btn-primary w-100" disabled>
                             Click a number below to select
-                        </div>
+                        </button>
                     </div>
                     <div id="lucky-draw-grid" style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; padding: 5px; border: 1px solid #ffc107; border-radius: 5px; background: #fff;">
                         {% for num in "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789X"|make_list %}
@@ -453,7 +453,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update displays
                 countDisplay.textContent = '1';
-                selectedDisplay.innerHTML = `<span class="badge bg-warning text-dark me-1 mb-1">${number}</span>`;
+                selectedDisplay.textContent = number;
+                selectedDisplay.removeAttribute('disabled');
                 
                 // Update hidden input
                 hiddenInput.value = number;
