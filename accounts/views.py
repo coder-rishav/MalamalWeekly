@@ -71,9 +71,16 @@ def user_logout(request):
 
 
 @login_required
+@login_required
 def account_banned(request):
-    """Show banned account page with appeal option"""
-    profile = request.user.profile
+    """Show banned account page with appeal option - Only accessible by banned users"""
+    # Get or create user profile
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    # Check if user is actually banned/blocked
+    if not profile.is_blocked:
+        messages.info(request, 'Your account is not banned.')
+        return redirect('games:dashboard')
     
     # Check if user has already submitted an appeal
     from .models import BanAppeal
@@ -89,11 +96,12 @@ def account_banned(request):
                 appeal_message=appeal_message
             )
             messages.success(request, 'Your appeal has been submitted successfully. Our team will review it soon.')
+            return redirect('accounts:account_banned')
         else:
             messages.error(request, 'Please provide a message for your appeal.')
     
     context = {
-        'reason': profile.blocked_reason if profile.is_blocked else 'Account suspended',
+        'reason': profile.blocked_reason if profile.blocked_reason else 'Account suspended',
         'existing_appeal': existing_appeal,
     }
     return render(request, 'accounts/account_banned.html', context)
