@@ -115,6 +115,109 @@
                         <option value="yellow">🟡 Yellow</option>
                     </select>
                     
+                    {% elif game.game_type == 'keno' %}
+                    <h6 class="mb-3">Pick Your Numbers (1-20 from 1-80)</h6>
+                    <div class="alert alert-info mb-3">
+                        <small><i class="bi bi-info-circle"></i> Click numbers to select. Pick 1-20 numbers.</small>
+                    </div>
+                    <div id="keno-selection-display" class="mb-2">
+                        <strong>Selected (<span id="keno-count">0</span>/20):</strong>
+                        <div id="keno-selected-numbers" class="badge bg-primary">None</div>
+                    </div>
+                    <div id="keno-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px;">
+                        {% for num in "12345678901234567890123456789012345678901234567890123456789012345678901234567890"|make_list %}
+                        {% if forloop.counter <= 80 %}
+                        <button type="button" class="btn btn-outline-primary btn-sm keno-number" data-number="{{ forloop.counter }}" style="aspect-ratio: 1;">
+                            {{ forloop.counter }}
+                        </button>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="keno_numbers_hidden" id="keno-numbers-hidden" required>
+                    
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const selectedNumbers = new Set();
+                        const maxSelections = 20;
+                        const buttons = document.querySelectorAll('.keno-number');
+                        const countDisplay = document.getElementById('keno-count');
+                        const selectedDisplay = document.getElementById('keno-selected-numbers');
+                        const hiddenInput = document.getElementById('keno-numbers-hidden');
+                        
+                        buttons.forEach(button => {
+                            button.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                const number = this.dataset.number;
+                                
+                                if (selectedNumbers.has(number)) {
+                                    // Deselect
+                                    selectedNumbers.delete(number);
+                                    this.classList.remove('active');
+                                    this.classList.add('btn-outline-primary');
+                                    this.classList.remove('btn-primary');
+                                } else if (selectedNumbers.size < maxSelections) {
+                                    // Select
+                                    selectedNumbers.add(number);
+                                    this.classList.add('active');
+                                    this.classList.remove('btn-outline-primary');
+                                    this.classList.add('btn-primary');
+                                }
+                                
+                                // Update displays
+                                countDisplay.textContent = selectedNumbers.size;
+                                if (selectedNumbers.size > 0) {
+                                    const sortedNumbers = Array.from(selectedNumbers).sort((a, b) => a - b);
+                                    selectedDisplay.textContent = sortedNumbers.join(', ');
+                                } else {
+                                    selectedDisplay.textContent = 'None';
+                                }
+                                
+                                // Update hidden input
+                                hiddenInput.value = Array.from(selectedNumbers).join(',');
+                            });
+                        });
+                        
+                        // Form submission handler
+                        const form = document.querySelector('form');
+                        if (form) {
+                            form.addEventListener('submit', function(e) {
+                                // Create input fields for each selected number
+                                selectedNumbers.forEach(num => {
+                                    const input = document.createElement('input');
+                                    input.type = 'hidden';
+                                    input.name = 'keno_numbers';
+                                    input.value = num;
+                                    form.appendChild(input);
+                                });
+                            });
+                        }
+                    });
+                    </script>
+                    
+                    {% elif game.game_type == 'odd_even' %}
+                    <h6 class="mb-3">Will the number be Odd or Even?</h6>
+                    <div class="alert alert-info mb-3">
+                        <small><i class="bi bi-info-circle"></i> A number between 1-100 will be drawn. Predict if it's odd or even!</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="radio" class="btn-check" name="prediction" value="odd" id="odd-radio" required>
+                            <label class="btn btn-outline-primary w-100" for="odd-radio" style="padding: 30px 0;">
+                                <i class="bi bi-1-circle" style="font-size: 2rem;"></i><br>
+                                <strong>ODD</strong><br>
+                                <small>1, 3, 5, 7...</small>
+                            </label>
+                        </div>
+                        <div class="col-6">
+                            <input type="radio" class="btn-check" name="prediction" value="even" id="even-radio" required>
+                            <label class="btn btn-outline-success w-100" for="even-radio" style="padding: 30px 0;">
+                                <i class="bi bi-2-circle" style="font-size: 2rem;"></i><br>
+                                <strong>EVEN</strong><br>
+                                <small>2, 4, 6, 8...</small>
+                            </label>
+                        </div>
+                    </div>
+                    
                     {% elif game.game_type == 'custom' %}
                     <h6 class="mb-3">{{ game.name }}</h6>
                     
