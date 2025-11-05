@@ -543,6 +543,8 @@ def games_management(request):
 @user_passes_test(is_admin, login_url='/admin-panel/login/')
 def create_game(request):
     """Create a new game"""
+    from transactions.currency_models import Currency
+    
     if request.method == 'POST':
         # Create new game
         game = Game()
@@ -606,7 +608,14 @@ def create_game(request):
         messages.success(request, f'Game "{game.name}" created successfully! You can now create rounds for it.')
         return redirect('custom_admin:game_rounds', game_id=game.id)
     
-    context = {}
+    # Get base currency for display
+    base_currency = Currency.objects.filter(is_base_currency=True).first()
+    if not base_currency:
+        base_currency = Currency.objects.filter(code='INR').first()
+    
+    context = {
+        'base_currency': base_currency,
+    }
     return render(request, 'custom_admin/create_game.html', context)
 
 
@@ -614,6 +623,8 @@ def create_game(request):
 @user_passes_test(is_admin, login_url='/admin-panel/login/')
 def edit_game(request, game_id):
     """Edit game details"""
+    from transactions.currency_models import Currency
+    
     game = get_object_or_404(Game, id=game_id)
     
     if request.method == 'POST':
@@ -637,8 +648,14 @@ def edit_game(request, game_id):
         messages.success(request, f'{game.name} updated successfully!')
         return redirect('custom_admin:games_management')
     
+    # Get base currency for display
+    base_currency = Currency.objects.filter(is_base_currency=True).first()
+    if not base_currency:
+        base_currency = Currency.objects.filter(code='INR').first()
+    
     context = {
         'game': game,
+        'base_currency': base_currency,
     }
     return render(request, 'custom_admin/edit_game.html', context)
 

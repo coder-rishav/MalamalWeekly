@@ -165,20 +165,39 @@
                     
                     <!-- Financial Settings -->
                     <h6 class="border-bottom pb-2 mb-3 mt-4">Financial Settings</h6>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Amounts are stored in base currency ({{ base_currency.code }}) and automatically converted for users based on their preferred currency.
+                    </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="entry_fee" class="form-label">Entry Fee (₹) *</label>
-                            <input type="number" class="form-control" id="entry_fee" name="entry_fee" 
-                                   placeholder="50" step="0.01" min="0" required>
-                            <small class="text-muted">Cost to participate</small>
+                            <label for="entry_fee" class="form-label">Entry Fee ({{ base_currency.symbol }}) *</label>
+                            <div class="input-group">
+                                {% if base_currency.symbol_position == 'before' %}
+                                <span class="input-group-text">{{ base_currency.symbol }}</span>
+                                {% endif %}
+                                <input type="number" class="form-control" id="entry_fee" name="entry_fee" 
+                                       placeholder="50" step="0.01" min="0" required>
+                                {% if base_currency.symbol_position == 'after' %}
+                                <span class="input-group-text">{{ base_currency.symbol }}</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">Cost to participate (in {{ base_currency.code }})</small>
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="winning_amount" class="form-label">Prize Amount (₹) *</label>
-                            <input type="number" class="form-control" id="winning_amount" name="winning_amount" 
-                                   placeholder="10000" step="0.01" min="0" required>
-                            <small class="text-muted">Winner's prize</small>
+                            <label for="winning_amount" class="form-label">Prize Amount ({{ base_currency.symbol }}) *</label>
+                            <div class="input-group">
+                                {% if base_currency.symbol_position == 'before' %}
+                                <span class="input-group-text">{{ base_currency.symbol }}</span>
+                                {% endif %}
+                                <input type="number" class="form-control" id="winning_amount" name="winning_amount" 
+                                       placeholder="10000" step="0.01" min="0" required>
+                                {% if base_currency.symbol_position == 'after' %}
+                                <span class="input-group-text">{{ base_currency.symbol }}</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">Winner's prize (in {{ base_currency.code }})</small>
                         </div>
                     </div>
                     
