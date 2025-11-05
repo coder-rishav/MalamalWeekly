@@ -237,114 +237,6 @@
                     });
                     </script>
                     
-                    <script>
-                    // Number Match Game (Select 5 numbers from 0-99)
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const selectedNumbers = new Set();
-                        const maxSelections = 5;
-                        const buttons = document.querySelectorAll('.number-match-number');
-                        const countDisplay = document.getElementById('number-match-count');
-                        const selectedDisplay = document.getElementById('number-match-selected-numbers');
-                        const hiddenInput = document.getElementById('number-match-numbers-hidden');
-                        
-                        if (buttons.length > 0) {
-                            buttons.forEach(button => {
-                                button.addEventListener('click', function(e) {
-                                    e.preventDefault();
-                                    const number = this.dataset.number;
-                                    
-                                    if (selectedNumbers.has(number)) {
-                                        // Deselect
-                                        selectedNumbers.delete(number);
-                                        this.classList.remove('active');
-                                        this.classList.add('btn-outline-primary');
-                                        this.classList.remove('btn-primary');
-                                    } else if (selectedNumbers.size < maxSelections) {
-                                        // Select
-                                        selectedNumbers.add(number);
-                                        this.classList.add('active');
-                                        this.classList.remove('btn-outline-primary');
-                                        this.classList.add('btn-primary');
-                                    }
-                                    
-                                    // Update displays
-                                    countDisplay.textContent = selectedNumbers.size;
-                                    if (selectedNumbers.size > 0) {
-                                        const sortedNumbers = Array.from(selectedNumbers).sort((a, b) => Number(a) - Number(b));
-                                        selectedDisplay.innerHTML = sortedNumbers.map(num => 
-                                            `<span class="badge bg-primary me-1 mb-1">${num}</span>`
-                                        ).join('');
-                                    } else {
-                                        selectedDisplay.textContent = 'Click numbers below to select';
-                                    }
-                                    
-                                    // Update hidden input - store as individual numbers for form submission
-                                    hiddenInput.value = Array.from(selectedNumbers).join(',');
-                                });
-                            });
-                            
-                            // Form submission handler - create individual number fields
-                            const form = document.querySelector('form');
-                            if (form) {
-                                form.addEventListener('submit', function(e) {
-                                    if (selectedNumbers.size !== maxSelections) {
-                                        e.preventDefault();
-                                        alert(`Please select exactly ${maxSelections} numbers.`);
-                                        return;
-                                    }
-                                    // Create input fields for each selected number
-                                    const sortedNumbers = Array.from(selectedNumbers).sort((a, b) => Number(a) - Number(b));
-                                    sortedNumbers.forEach((num, index) => {
-                                        const input = document.createElement('input');
-                                        input.type = 'hidden';
-                                        input.name = `number_${index + 1}`;
-                                        input.value = num;
-                                        form.appendChild(input);
-                                    });
-                                });
-                            }
-                        }
-                    });
-                    </script>
-                    
-                    <script>
-                    // Lucky Draw Game (Select 1 number from 1-100)
-                    document.addEventListener('DOMContentLoaded', function() {
-                        let selectedNumber = null;
-                        const buttons = document.querySelectorAll('.lucky-draw-number');
-                        const selectedDisplay = document.getElementById('lucky-draw-selected-number');
-                        const hiddenInput = document.getElementById('lucky-draw-number-hidden');
-                        
-                        if (buttons.length > 0) {
-                            buttons.forEach(button => {
-                                button.addEventListener('click', function(e) {
-                                    e.preventDefault();
-                                    const number = this.dataset.number;
-                                    
-                                    // Deselect previous selection
-                                    buttons.forEach(btn => {
-                                        btn.classList.remove('active');
-                                        btn.classList.add('btn-outline-success');
-                                        btn.classList.remove('btn-success');
-                                    });
-                                    
-                                    // Select this number
-                                    selectedNumber = number;
-                                    this.classList.add('active');
-                                    this.classList.remove('btn-outline-success');
-                                    this.classList.add('btn-success');
-                                    
-                                    // Update display
-                                    selectedDisplay.textContent = number;
-                                    
-                                    // Update hidden input
-                                    hiddenInput.value = number;
-                                });
-                            });
-                        }
-                    });
-                    </script>
-                    
                     {% elif game.game_type == 'odd_even' %}
                     <h6 class="mb-3">Will the number be Odd or Even?</h6>
                     <div class="alert alert-info mb-3">
@@ -459,4 +351,111 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+// Number Match Game (Select 5 numbers from 0-99)
+document.addEventListener('DOMContentLoaded', function() {
+    const selectedNumbers = new Set();
+    const maxSelections = 5;
+    const buttons = document.querySelectorAll('.number-match-number');
+    const countDisplay = document.getElementById('number-match-count');
+    const selectedDisplay = document.getElementById('number-match-selected-numbers');
+    const hiddenInput = document.getElementById('number-match-numbers-hidden');
+    
+    if (buttons.length > 0) {
+        buttons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const number = this.dataset.number;
+                
+                if (selectedNumbers.has(number)) {
+                    // Deselect
+                    selectedNumbers.delete(number);
+                    this.classList.remove('active');
+                    this.classList.add('btn-outline-primary');
+                    this.classList.remove('btn-primary');
+                } else if (selectedNumbers.size < maxSelections) {
+                    // Select
+                    selectedNumbers.add(number);
+                    this.classList.add('active');
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('btn-primary');
+                }
+                
+                // Update displays
+                countDisplay.textContent = selectedNumbers.size;
+                if (selectedNumbers.size > 0) {
+                    const sortedNumbers = Array.from(selectedNumbers).sort((a, b) => Number(a) - Number(b));
+                    selectedDisplay.innerHTML = sortedNumbers.map(num => 
+                        `<span class="badge bg-primary me-1 mb-1">${num}</span>`
+                    ).join('');
+                } else {
+                    selectedDisplay.textContent = 'Click numbers below to select';
+                }
+                
+                // Update hidden input
+                hiddenInput.value = Array.from(selectedNumbers).join(',');
+            });
+        });
+        
+        // Form submission handler
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (selectedNumbers.size !== maxSelections) {
+                    e.preventDefault();
+                    alert(`Please select exactly ${maxSelections} numbers.`);
+                    return;
+                }
+                // Create input fields for each selected number
+                const sortedNumbers = Array.from(selectedNumbers).sort((a, b) => Number(a) - Number(b));
+                sortedNumbers.forEach((num, index) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = `number_${index + 1}`;
+                    input.value = num;
+                    form.appendChild(input);
+                });
+            });
+        }
+    }
+});
+
+// Lucky Draw Game (Select 1 number from 1-100)
+document.addEventListener('DOMContentLoaded', function() {
+    let selectedNumber = null;
+    const buttons = document.querySelectorAll('.lucky-draw-number');
+    const selectedDisplay = document.getElementById('lucky-draw-selected-number');
+    const hiddenInput = document.getElementById('lucky-draw-number-hidden');
+    
+    if (buttons.length > 0) {
+        buttons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const number = this.dataset.number;
+                
+                // Deselect previous selection
+                buttons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.classList.add('btn-outline-success');
+                    btn.classList.remove('btn-success');
+                });
+                
+                // Select this number
+                selectedNumber = number;
+                this.classList.add('active');
+                this.classList.remove('btn-outline-success');
+                this.classList.add('btn-success');
+                
+                // Update display
+                selectedDisplay.textContent = number;
+                
+                // Update hidden input
+                hiddenInput.value = number;
+            });
+        });
+    }
+});
+</script>
+
 {% endblock %}
