@@ -6,6 +6,7 @@ from django.db.models import Count, Sum
 from django.http import JsonResponse
 from .models import Game, GameRound, UserEntry, Winner, Leaderboard
 from transactions.models import Transaction
+from decimal import Decimal
 import json
 
 
@@ -284,16 +285,17 @@ def play_game(request, game_id, round_id):
             user=request.user,
             game_round=game_round,
             user_choice=user_choice,
-            entry_fee_paid=game.entry_fee
+            entry_fee_paid=Decimal(str(game.entry_fee))
         )
         
         # Create transaction record
+        entry_fee = Decimal(str(game.entry_fee))
         Transaction.objects.create(
             user=request.user,
             transaction_type='game_entry',
-            amount=game.entry_fee,
+            amount=entry_fee,
             status='completed',
-            balance_before=request.user.profile.wallet_balance + game.entry_fee,
+            balance_before=request.user.profile.wallet_balance + entry_fee,
             balance_after=request.user.profile.wallet_balance,
             description=f'Entry fee for {game.name} - Round {game_round.round_number}',
             game_entry=entry,
@@ -302,7 +304,7 @@ def play_game(request, game_id, round_id):
         
         # Update round statistics
         game_round.total_participants += 1
-        game_round.total_pool_amount += game.entry_fee
+        game_round.total_pool_amount += Decimal(str(game.entry_fee))
         game_round.save()
         
         messages.success(request, f'Successfully entered {game.name}! Entry Number: {entry.entry_number}')
