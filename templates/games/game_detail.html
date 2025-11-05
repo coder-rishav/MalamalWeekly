@@ -132,7 +132,7 @@
                     <div id="lucky-draw-grid" style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; padding: 5px; border: 1px solid #dee2e6; border-radius: 5px; background: #fff;">
                         {% for num in "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789X"|make_list %}
                         {% if forloop.counter <= 100 %}
-                        <button type="button" class="btn btn-outline-success lucky-draw-number" data-number="{{ forloop.counter }}" style="padding: 4px 2px; font-size: 0.75rem; min-width: 0; aspect-ratio: 1;">
+                        <button type="button" class="btn btn-outline-warning lucky-draw-number" data-number="{{ forloop.counter }}" style="padding: 4px 2px; font-size: 0.75rem; min-width: 0; aspect-ratio: 1;">
                             {{ forloop.counter }}
                         </button>
                         {% endif %}
@@ -437,15 +437,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Deselect previous selection
                 buttons.forEach(btn => {
                     btn.classList.remove('active');
-                    btn.classList.add('btn-outline-success');
-                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-warning');
+                    btn.classList.remove('btn-warning');
                 });
                 
                 // Select this number
                 selectedNumber = number;
                 this.classList.add('active');
-                this.classList.remove('btn-outline-success');
-                this.classList.add('btn-success');
+                this.classList.remove('btn-outline-warning');
+                this.classList.add('btn-warning');
                 
                 // Update display
                 selectedDisplay.textContent = number;
