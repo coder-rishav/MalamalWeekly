@@ -322,9 +322,20 @@
                 <!-- Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2>{% block page_title %}Dashboard{% endblock %}</h2>
-                    <div>
-                        <span class="text-muted">Logged in as:</span>
-                        <strong>{{ user.username }}</strong>
+                    <div class="dropdown">
+                        <button class="btn btn-link dropdown-toggle text-decoration-none d-flex align-items-center" type="button" id="adminUserDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if user.profile.profile_photo %}
+                                <img src="{{ user.profile.profile_photo.url }}" alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover; border: 2px solid #dee2e6;">
+                            {% else %}
+                                <i class="bi bi-person-circle me-1" style="font-size: 24px;"></i>
+                            {% endif %}
+                            <strong>{{ user.username }}</strong>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminUserDropdown">
+                            <li><a class="dropdown-item" href="{% url 'custom_admin:admin_profile' %}"><i class="bi bi-person"></i> My Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'custom_admin:logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                        </ul>
                     </div>
                 </div>
 

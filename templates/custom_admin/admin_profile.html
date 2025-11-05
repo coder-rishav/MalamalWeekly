@@ -1,0 +1,257 @@
+{% extends 'custom_admin/base.html' %}
+{% load static %}
+
+{% block title %}My Profile - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-person-circle"></i> My Profile</h2>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Profile Picture -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-image"></i> Profile Picture</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        {% if profile.profile_photo %}
+                            <img src="{{ profile.profile_photo.url }}" alt="Profile Photo" class="img-fluid rounded-circle mb-3" style="width: 200px; height: 200px; object-fit: cover; border: 4px solid #dee2e6;">
+                        {% else %}
+                            <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 200px; height: 200px; font-size: 80px;">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data" id="uploadPhotoForm" onsubmit="return validatePhotoUpload(event)">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <input type="file" class="form-control" name="profile_photo" accept="image/*" id="profilePhotoInput">
+                            <small class="text-muted">Max file size: 5MB. Supported formats: JPG, PNG, GIF</small>
+                        </div>
+                        <button type="submit" class="btn btn-info w-100 mb-2">
+                            <i class="bi bi-upload"></i> Upload Photo
+                        </button>
+                    </form>
+                    
+                    {% if profile.profile_photo %}
+                    <button type="button" class="btn btn-outline-danger w-100" onclick="removeProfilePhoto()">
+                        <i class="bi bi-trash"></i> Remove Photo
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Information -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-person-lines-fill"></i> Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" value="{{ user.username }}" readonly>
+                            <small class="text-muted">Username cannot be changed</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" placeholder="Enter first name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" placeholder="Enter last name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" placeholder="Enter email address" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Update Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Change Password</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'custom_admin:admin_change_password' %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                            <small class="text-muted">Minimum 8 characters</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-key"></i> Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Information -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Account Type:</strong>
+                            <span class="badge bg-success ms-2">
+                                {% if user.is_superuser %}
+                                    <i class="bi bi-star-fill"></i> Super Admin
+                                {% else %}
+                                    <i class="bi bi-shield-check"></i> Admin
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Account Status:</strong>
+                            <span class="badge bg-{% if user.is_active %}success{% else %}danger{% endif %} ms-2">
+                                {% if user.is_active %}
+                                    <i class="bi bi-check-circle"></i> Active
+                                {% else %}
+                                    <i class="bi bi-x-circle"></i> Inactive
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Date Joined:</strong>
+                            <span class="ms-2">{{ user.date_joined|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Last Login:</strong>
+                            <span class="ms-2">
+                                {% if user.last_login %}
+                                    {{ user.last_login|date:"M d, Y H:i" }}
+                                {% else %}
+                                    Never
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function validatePhotoUpload(event) {
+    const fileInput = document.getElementById('profilePhotoInput');
+    const file = fileInput.files[0];
+    
+    // Check if a file is selected
+    if (!file) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'No Photo Selected',
+            text: 'Please select a photo to upload.',
+            icon: 'warning',
+            confirmButtonColor: '#0dcaf0',
+            confirmButtonText: 'OK'
+        });
+        return false;
+    }
+    
+    // Check file size (5MB = 5 * 1024 * 1024 bytes)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'File Too Large',
+            text: 'The selected file is too large. Maximum file size is 5MB.',
+            icon: 'error',
+            confirmButtonColor: '#0dcaf0',
+            confirmButtonText: 'OK'
+        });
+        fileInput.value = ''; // Clear the input
+        return false;
+    }
+    
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+        event.preventDefault();
+        Swal.fire({
+            title: 'Invalid File Type',
+            text: 'Please select a valid image file (JPG, PNG, or GIF).',
+            icon: 'error',
+            confirmButtonColor: '#0dcaf0',
+            confirmButtonText: 'OK'
+        });
+        fileInput.value = ''; // Clear the input
+        return false;
+    }
+    
+    return true;
+}
+
+function removeProfilePhoto() {
+    Swal.fire({
+        title: 'Remove Profile Picture?',
+        text: "Are you sure you want to remove your profile picture?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, remove it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "{% url 'custom_admin:admin_remove_profile_photo' %}";
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1895,3 +1895,95 @@ def refresh_exchange_rates(request):
     CurrencyManager.clear_cache()
     
     return redirect('custom_admin:exchange_rates_list')
+
+
+# ========================
+# Admin Profile Management
+# ========================
+
+@login_required
+@user_passes_test(is_admin)
+def admin_profile(request):
+    """Admin profile page"""
+    # Ensure user has a profile
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    if request.method == 'POST':
+        # Check if it's a profile picture update
+        if 'profile_photo' in request.FILES:
+            profile.profile_photo = request.FILES['profile_photo']
+            profile.save()
+            messages.success(request, 'Profile picture updated successfully!')
+            return redirect('custom_admin:admin_profile')
+        
+        # Update basic info
+        user = request.user
+        user.first_name = request.POST.get('first_name', '')
+        user.last_name = request.POST.get('last_name', '')
+        user.email = request.POST.get('email', '')
+        user.save()
+        
+        messages.success(request, 'Profile updated successfully!')
+        return redirect('custom_admin:admin_profile')
+    
+    context = {
+        'user': request.user,
+        'profile': profile,
+    }
+    return render(request, 'custom_admin/admin_profile.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_change_password(request):
+    """Change admin password"""
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        # Verify current password
+        if not request.user.check_password(current_password):
+            messages.error(request, 'Current password is incorrect.')
+            return redirect('custom_admin:admin_profile')
+        
+        # Check if new passwords match
+        if new_password != confirm_password:
+            messages.error(request, 'New passwords do not match.')
+            return redirect('custom_admin:admin_profile')
+        
+        # Check password strength
+        if len(new_password) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+            return redirect('custom_admin:admin_profile')
+        
+        # Update password
+        request.user.set_password(new_password)
+        request.user.save()
+        
+        # Re-authenticate user
+        from django.contrib.auth import update_session_auth_hash
+        update_session_auth_hash(request, request.user)
+        
+        messages.success(request, 'Password changed successfully!')
+        return redirect('custom_admin:admin_profile')
+    
+    return redirect('custom_admin:admin_profile')
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_remove_profile_photo(request):
+    """Remove admin profile photo"""
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    if profile.profile_photo:
+        # Delete the file
+        profile.profile_photo.delete(save=False)
+        profile.profile_photo = None
+        profile.save()
+        messages.success(request, 'Profile picture removed successfully!')
+    else:
+        messages.info(request, 'No profile picture to remove.')
+    
+    return redirect('custom_admin:admin_profile')

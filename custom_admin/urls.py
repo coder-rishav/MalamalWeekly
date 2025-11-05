@@ -8,6 +8,11 @@ urlpatterns = [
     path('login/', views.admin_login_view, name='login'),
     path('logout/', views.admin_logout_view, name='logout'),
     
+    # Admin Profile
+    path('profile/', views.admin_profile, name='admin_profile'),
+    path('profile/change-password/', views.admin_change_password, name='admin_change_password'),
+    path('profile/remove-photo/', views.admin_remove_profile_photo, name='admin_remove_profile_photo'),
+    
     # Dashboard
     path('', views.admin_dashboard, name='dashboard'),
     
