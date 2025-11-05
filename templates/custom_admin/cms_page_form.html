@@ -27,7 +27,7 @@
                     <div class="mb-4">
                         <label for="content" class="form-label">Page Content <span class="text-danger">*</span></label>
                         <div id="editor-container"></div>
-                        <textarea class="form-control" id="content" name="content" required>{{ page.content }}</textarea>
+                        <textarea class="form-control" id="content" name="content">{{ page.content }}</textarea>
                         <small class="form-text text-muted mt-2 d-block">Use the rich text editor above to format your content. HTML will be generated automatically.</small>
                     </div>
 
@@ -141,13 +141,32 @@ var quill = new Quill('#editor-container', {
 
 // Load existing content if editing
 {% if page.content %}
-quill.root.innerHTML = {{ page.content|safe|escapejs|safe }};
+try {
+    quill.root.innerHTML = {{ page.content|safe|escapejs|safe }};
+    console.log('Loaded existing content');
+} catch(e) {
+    console.error('Error loading content:', e);
+}
+{% else %}
+console.log('Quill editor initialized for new page');
 {% endif %}
 
 // Sync Quill content to textarea on form submit
-document.querySelector('form').onsubmit = function() {
+document.querySelector('form').onsubmit = function(e) {
     var content = document.querySelector('#content');
-    content.value = quill.root.innerHTML;
+    var htmlContent = quill.root.innerHTML;
+    
+    // Check if content is empty (only <p><br></p> means empty in Quill)
+    var textContent = quill.getText().trim();
+    
+    if (textContent.length === 0) {
+        e.preventDefault();
+        alert('Please enter page content');
+        return false;
+    }
+    
+    // Set the textarea value to the HTML content
+    content.value = htmlContent;
     return true;
 };
 
